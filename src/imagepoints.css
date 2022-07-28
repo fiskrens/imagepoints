@@ -1,0 +1,151 @@
+* { box-sizing: border-box; }
+
+.imgn-image { user-select: none; }
+
+.imgn-text {
+    position: absolute;
+    font-size: 10pt;
+    box-shadow: 0px 0px 3px rgba(0,0,0,0.2);
+    padding: 4px;
+    min-width: 50px;
+    display: block;
+    font-family: 'Lato';
+    min-height: 24px;
+}
+.imgn-text:hover {
+    outline: 2px solid #21b520;
+}
+
+.imgn-line {
+
+}
+
+.imgp-point {
+    background: #282828;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    color: white;
+    font-family: 'Lato';
+    font-size: 10pt;
+}
+.imgp-point:after {
+    content: '';
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #282828;
+    bottom: -4px;
+    position: absolute;
+
+}
+
+
+
+
+.imgn-move {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: 0;
+    right: 24px;
+    padding: 5px;
+    border-radius: 2px;
+    background: #efefef;
+    display: none;
+    cursor: move !important;
+}
+.imgn-move:after {
+    content: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><path d="M337.782 434.704l-73.297 73.782c-4.686 4.686-12.284 4.686-16.971 0l-73.296-73.782c-4.686-4.686-4.686-12.284 0-16.97l7.07-7.07c4.686-4.686 12.284-4.686 16.971 0L239 451.887h1V272H60.113v1l41.224 40.741c4.686 4.686 4.686 12.284 0 16.971l-7.071 7.07c-4.686 4.686-12.284 4.686-16.97 0L3.515 264.485c-4.686-4.686-4.686-12.284 0-16.971l73.782-73.297c4.686-4.686 12.284-4.686 16.971 0l7.071 7.071c4.686 4.686 4.686 12.284 0 16.971L60.113 239v1H240V60.113h-1l-40.741 41.224c-4.686 4.686-12.284 4.686-16.971 0l-7.07-7.071c-4.686-4.686-4.687-12.284 0-16.97l73.297-73.782c4.686-4.686 12.284-4.686 16.971 0l73.297 73.782c4.686 4.686 4.686 12.284 0 16.971l-7.071 7.071c-4.686 4.686-12.284 4.686-16.971 0L273 60.113h-1V240h179.887v-1l-41.224-40.741c-4.686-4.686-4.686-12.284 0-16.971l7.071-7.07c4.686-4.686 12.284-4.686 16.97 0l73.782 73.297c4.687 4.686 4.686 12.284 0 16.971l-73.782 73.297c-4.686 4.686-12.284 4.686-16.97 0l-7.071-7.07c-4.686-4.686-4.686-12.284 0-16.971L451.887 273v-1H272v179.887h1l40.741-41.224c4.686-4.686 12.284-4.686 16.971 0l7.07 7.071c4.686 4.685 4.686 12.283 0 16.97z"/></svg>');
+}
+
+.imgn-text:hover .imgn-move { display: block; }
+
+.image-wrapper[data-tooltype="add"] {
+    cursor:crosshair;
+}
+
+.imgn-point {
+    background: pink;
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.imgn-button {
+    background: #21b520;
+    color: white;
+    border-radius: 3px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.imgn-button:hover {
+    filter:brightness(1.1);
+}
+
+.imgn-text textarea { 
+    border: 0;
+    resize: none;
+    width: 100%; 
+    height: auto;
+    /*text-align: center;*/
+    font-size: 10pt;
+    font-family: 'Lato';
+    padding: 4px;
+    height: 100%;
+    display: none;
+    background: transparent;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
+.imgn-text textarea:focus {
+    outline: 2px solid #3271a5;
+    background: #e4eef7
+}
+
+/* .imgn-text[data-status="edit"]:hover {
+    outline: 2px solid #3271a5;
+} */
+
+
+.imgn-text-value { user-select: none; }
+
+.imgn-text[data-status="edit"] .imgn-text-value {
+    visibility: hidden;
+}
+.imgn-text[data-status="edit"] textarea {
+    display: block;
+}
+.imgn-text[data-status="edit"] .imgn-move { display: none;}
+
+
+/* UI */
+.imgn-text .ui-resizable-handle { position: absolute; right: -10px; bottom: -10px; cursor: nwse-resize; display: none !important;}
+.imgn-text:hover .ui-resizable-handle { display: block !important;}
+.imgn-text[data-status="edit"]:hover .ui-resizable-handle { display: none !important;}
+.ui-resizable-helper { border: 2px dotted #cccccc;}
+
+.imgn-text .ui-resizable-handle.ui-resizable-e {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: 0;
+    right: 0px;
+    padding: 5px;
+    border-radius: 2px;
+    background: #efefef;
+    display: none;
+    cursor: ew-resize !important;
+}
+.imgn-text .ui-resizable-handle.ui-resizable-e:after {
+    content: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><path d="M399.959 170.585c-4.686 4.686-4.686 12.284 0 16.971L451.887 239H60.113l51.928-51.444c4.686-4.686 4.686-12.284 0-16.971l-7.071-7.07c-4.686-4.686-12.284-4.686-16.97 0l-84.485 84c-4.686 4.686-4.686 12.284 0 16.971l84.485 84c4.686 4.686 12.284 4.686 16.97 0l7.071-7.07c4.686-4.686 4.686-12.284 0-16.971L60.113 273h391.773l-51.928 51.444c-4.686 4.686-4.686 12.284 0 16.971l7.071 7.07c4.686 4.686 12.284 4.686 16.97 0l84.485-84c4.687-4.686 4.687-12.284 0-16.971l-84.485-84c-4.686-4.686-12.284-4.686-16.97 0l-7.07 7.071z"/></svg>')
+}
+

@@ -1,0 +1,22 @@
+* {
+    box-sizing: border-box;
+}
+
+.image-wrapper {
+    width: 600px;
+    height: 400px;
+    outline: 12px solid pink;
+    margin-left: 120px;
+    margin-bottom: 20px;
+}
+.image-wrapper>img { max-width: 100%;}
+
+
+
+
+
+
+
+
+
+
