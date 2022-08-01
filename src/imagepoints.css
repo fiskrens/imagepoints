@@ -22,6 +22,17 @@
 
 .imgp-value { z-index: 1;}
 
+
+.imgp-point-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+.imgp-point-wrapper>* { pointer-events: all;}
+
 .imgp-point {
     background: #282828;
     border-radius: 50%;
@@ -35,6 +46,8 @@
     font-family: 'Lato';
     font-size: 10pt;
     cursor: move;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 2;
 }
 /* .imgp-point:after {
     content: '';
@@ -54,17 +67,16 @@
 
 .imgp-point-addline {
     position: absolute !important;
-
     width: 20px;
     height: 20px;
     border-radius: 50%;
     font-size: 10pt;
-    bottom: -15px;
     background: rgba(133, 133, 133, 0.178);
     color: black;
     display: flex;
     justify-content: center;
     align-items: center;
+    transform: translateX(-50%) translateY(-50%);
 }
 .imgp-point-addline:hover {
     background: #21b520;
@@ -82,7 +94,7 @@
     background: #21b520;
 }
 
-.line {
+.imgp-line {
   width: 1px;
   height: 1px;
   background-color: #282828;

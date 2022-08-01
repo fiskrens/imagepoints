@@ -3,8 +3,7 @@
 }
 
 .image-wrapper {
-    width: 600px;
-    height: 400px;
+    width: 40%;
     outline: 12px solid pink;
     margin-left: 120px;
     margin-bottom: 20px;
