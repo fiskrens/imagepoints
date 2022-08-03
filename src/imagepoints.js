@@ -1,29 +1,20 @@
-
-
-
 class ImagePoints {
-    //elems = null
-    //images = []
-    //elem = null
     image = null
     points = []
     currentTool = ''
     options = {
-        pointoffset: {x: 0, y: -20}
+        pointoffset: {x: 0, y: -20},
+        callbacks: {
+            add: null,
+            move: null,
+            modechange: null
+        },
+        pointlist: null
     }
     
-
     constructor(element, options) {
-        //this.elems = document.querySelectorAll(selector)
         this.options = {...this.options, ...options}
-        
-        //this.image = 
         this.initImage(element)
-        
-        // this.elems.forEach(image => {
-        //     this.initImage(image)
-        // })
-
         this.bindEvents()
     }
 
@@ -40,12 +31,11 @@ class ImagePoints {
     }
 
     bindEvents() {
-        document.querySelector('.js-enable-add').addEventListener('click', (e) => {
-            this.setCurrentTool('add')
-        })
+        
     }
 
     setCurrentTool(type) {
+        if(type !== this.currentTool && typeof this.options.callbacks.modechange == 'function') { this.options.callbacks.modechange(type) }
         this.currentTool = type
         this.image.setAttribute('data-tooltype', type);
     }
@@ -53,7 +43,6 @@ class ImagePoints {
     imageClicked(event) {
         const clickX =   event.pageX - this.image.offsetLeft
         const clickY =   event.pageY - this.image.offsetTop
-        console.log(event, this.currentTool, event.target.classList)
 
         switch(this.currentTool) {
             default:
@@ -63,12 +52,10 @@ class ImagePoints {
                 })
                 //Focus point
                 if(event.target.classList.contains('imgp-point')) {
-                    console.log(this.points[event.target.dataset.point])
                     this.points[event.target.dataset.point].focusPoint()
                 }
 
                 if(event.target.classList.contains('imgp-value')) {
-                    console.log(this.points[event.target.parentElement.dataset.point])
                     this.points[event.target.parentElement.dataset.point].focusPoint()
                 }
                 break;
@@ -77,23 +64,61 @@ class ImagePoints {
                     if(this.image.querySelector('.img-text textarea')) { return; }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
-                    this.addPoint(x, y)
+                    const point = this.addPoint(x, y)
+                    point.refreshLine()
                     this.setCurrentTool('')
+                    if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point) }
                 }
                 break;
         }
     }
 
-    addPoint(x, y) {
-        const point = new ImagePoint(this.image, x, y, this.points.length)
+    addPoint(x, y, x2 = '', y2 = '', text = '') {
+        const options = {
+            x: x,
+            y: y,
+            index: this.points.length,
+            text: text
+        }
+        const point = new ImagePoint(this.image, options)
         this.points.push(point)
+        this.addPointToList(point)
+        return point
     }
 
+    addPointToList(point) {
+        if(this.options.pointlist) {
+            const elPointItem = document.createElement('li')
+            elPointItem.dataset.index = point.index+1
+            elPointItem.innerHTML = ''
+            
+            const elPointItemText = document.createElement('div')
+            elPointItemText.classList.add('imgp-point-list-text')
+            const text = elPointItem.appendChild(elPointItemText)
 
+            const elPointItemTextarea = document.createElement('textarea')
+            elPointItemTextarea.classList.add('imgp-point-list-textarea')
+            const textarea = elPointItem.appendChild(elPointItemTextarea)
+
+            text.addEventListener('click', (e) => {
+                elPointItem.classList.add('imgp-edit')
+                textarea.focus()
+            })
+
+            textarea.addEventListener('blur', (e) => {
+                text.innerHTML = textarea.value
+                elPointItem.classList.remove('imgp-edit')
+            })
+
+            this.options.pointlist.appendChild(elPointItem)
+        }
+    }
 }
 
 class ImagePoint {
     image = null
+    index = 0
+    text = ''
     elems = {
         main: null,
         point: null,
@@ -107,10 +132,11 @@ class ImagePoint {
     isInEdit = false
     isFocused = false
 
-
-    constructor(image, x, y, index) {
-        this.image = image;
-        this.addPoint(x, y, index)
+    constructor(image, options) {
+        this.image = image
+        this.index = options.index
+        this.text = options.text
+        this.addPoint(options.x, options.y, options.x2, options.y2)
 
         window.addEventListener('resize', () => {
             //this.resizePixelValues(this.elem)
@@ -119,7 +145,10 @@ class ImagePoint {
         })
     }
 
-    addPoint(x, y, index) {
+    addPoint(x, y, x2 = null, y2 = null) {
+        if(x2==null) { x2 = x }
+        if(y2==null) { y2 = y+25 }
+
         //Main
         const elMain = document.createElement('div')
         elMain.classList.add('imgp-point-wrapper')
@@ -131,36 +160,35 @@ class ImagePoint {
         elPoint.style.left = `${x}px`
 
         this.elems.point = elMain.appendChild(elPoint)
-        this.elems.point.dataset.point = index
+        this.elems.point.dataset.point = this.index
         this.elems.point.x = x
         this.elems.point.y = y
         
         //Point - indexText
         const elIndexText = document.createElement('div')
         elIndexText.classList.add('imgp-value')
-        elIndexText.innerHTML = index+1
+        elIndexText.innerHTML = this.index+1
         this.elems.indextext = elPoint.appendChild(elIndexText)
-
-
-
 
         //Endpoint
         const elLineEndPoint = document.createElement('div')
         this.elems.lineendpoint = elMain.appendChild(elLineEndPoint)
         this.elems.lineendpoint.classList.add('imgp-point-addline')
-        this.elems.lineendpoint.style.top = `${y+25}px`
-        this.elems.lineendpoint.style.left = `${x}px`
+        this.elems.lineendpoint.style.top = `${y2}px`
+        this.elems.lineendpoint.style.left = `${x2}px`
 
         $(this.elems.lineendpoint).draggable({
             containment: 'parent',
             drag: (e, ui) => {
                 const x = ui.position.left
                 const y = ui.position.top
-                ui.position.left = x+(this.elems.lineendpoint.clientWidth/2)
-                ui.position.top = y+(this.elems.lineendpoint.clientHeight/2)
+                const left = x+(this.elems.lineendpoint.clientWidth/2)
+                const top = y+(this.elems.lineendpoint.clientHeight/2)
+                ui.position.left = left
+                ui.position.top = top
                 this.elems.lineendpoint.x = x
                 this.elems.lineendpoint.y = y
-                this.refreshLine()
+                this.refreshLine(null, {x: left, y: top})
             },
             stop: () => {
                 this.convertPixelsToPercentage(this.elems.lineendpoint)
@@ -168,17 +196,12 @@ class ImagePoint {
             }
         })
 
-        
-
         this.elems.main = this.image.appendChild(elMain)
 
         //Line
         const elLine = document.createElement('div')
         elLine.classList.add('imgp-line')
         this.elems.line = this.elems.main.appendChild(elLine)
-
-
-
 
 
         
@@ -192,11 +215,13 @@ class ImagePoint {
             drag: (e, ui) => {
                 const x = ui.position.left
                 const y = ui.position.top
-                ui.position.left = x+(this.elems.point.clientWidth/2)
-                ui.position.top = y+(this.elems.point.clientHeight/2)
+                const left = x+(this.elems.point.clientWidth/2)
+                const top = y+(this.elems.point.clientHeight/2)
+                ui.position.left = left
+                ui.position.top = top
                 this.elems.point.x = x
                 this.elems.point.y = y
-                this.refreshLine()
+                this.refreshLine({x: left, y: top})
             },
             stop: (e, ui) => {
                 this.convertPixelsToPercentage(this.elems.point)
@@ -204,48 +229,8 @@ class ImagePoint {
             }
         })
 
-        // $(this.elem).resizable({
-        //     containment: 'parent',
-        //     minWidth: 50,
-        //     minHeight: 24,
-        //     //helper: "ui-resizable-helper",
-        //     handles: 'e'
-        // });
-
-        // this.elems.textarea.addEventListener('blur', (e) => {
-        //     this.savePoint()
-        // })
-        // this.elems.textarea.addEventListener('keydown', (e) => {
-        //     this.setCurrentText(e.currentTarget.value)
-        // })
-        // this.elems.textarea.addEventListener('keyup', (e) => {
-        //     this.setCurrentText(e.currentTarget.value)
-        // })
-        // this.elems.textarea.addEventListener('keydown', (e) => {
-        //     if(e.key === 'Escape') {
-        //         this.cancelPoint()
-        //     }
-        // })
-
-
-        // this.elems.move.addEventListener('dragstart', (e) => {
-        //     e.dataTransfer.setData(format, 'Dragme');
-        //     e.dataTransfer.effectAllowed = effect;
-        // })
-        // this.elems.move.addEventListener('drag', (e) => {
-        //     if(e.screenX===0) { return}
-        //     e.preventDefault();
-        //     this.movePoint(e.clientX, e.clientY, e.layerX, e.layerY)
-        // })
-        // this.elems.move.addEventListener('dragend', (e) => {
-        //     //console.log('dragstop');
-        //     //console.log(e.clientX, e.clientY, e.layerX, e.layerY)
-        //     this.movePoint(e.clientX, e.clientY, e.layerX, e.layerY)
-        // })
-
         this.convertPixelsToPercentage(this.elems.point)
         this.convertPixelsToPercentage(this.elems.lineendpoint)
-
     }
 
     focusPoint() {
@@ -266,7 +251,6 @@ class ImagePoint {
 
     setCurrentText(text) {
         text = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
-        console.log(text)
         this.elems.text.innerHTML = text
     }
     
@@ -289,33 +273,22 @@ class ImagePoint {
         const factorW = (elementLeft != 0 && cWidth != 0) ? (elementLeft/cWidth) : 0
         const factorH = (elementTop != 0 && cHeight != 0) ? (elementTop/cHeight) : 0
 
-        // const factorW = (elementLeft/cWidth)
-        // const factorH = (elementTop/cHeight)
-
         el.style.left = `${factorW*100}%`
         el.style.top = `${factorH*100}%`
-        console.log(factorW, factorH)
     }
 
-    // resizePixelValues(el) {
-    //     const factorW = el.dataset.factor.left
-    //     const factorH = el.dataset.factor.top
-
-    // }
-
-    refreshLine() {
+    refreshLine(pA = null, pB = null) {
         const from = this.elems.point
         const to = this.elems.lineendpoint
 
-        const pointA = {
+        const pointA = pA ?? {
             x: from.offsetLeft,
             y: from.offsetTop
         }
-        const pointB = {
+        const pointB = pB ?? {
             x: to.offsetLeft,
             y: to.offsetTop
         }
-        console.log(pointA, pointB)
 
         let CA   = Math.abs(pointB.y - pointA.y)
         let CO   = Math.abs(pointB.x - pointA.x)
@@ -349,10 +322,7 @@ class ImagePoint {
         line.style.left   = left+'px';
         line.style.height = height + 'px';
     }
-
-
 }
-
 
 
 Element.prototype.ImagePoints = function(options) {

@@ -2,6 +2,22 @@
 
 .imgn-image { user-select: none; }
 
+.imgp-tool-btn { 
+    border-top: 2px solid transparent;
+    background: #cecece;
+    color: black;
+    padding: 5px 10px; 
+    border-radius: 3px;
+    cursor: pointer;
+}
+.imgp-tool-btn.active {
+    background: #21b520; 
+    border-top: 2px solid #1a8c19;
+    color: white;
+}
+.imgp-tool-btn:hover { filter: brightness(1.1); }
+
+
 .imgn-text {
     position: absolute;
     font-size: 10pt;
@@ -34,7 +50,7 @@
 .imgp-point-wrapper>* { pointer-events: all;}
 
 .imgp-point {
-    background: #282828;
+    background: #161616;
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -49,14 +65,7 @@
     transform: translateX(-50%) translateY(-50%);
     z-index: 2;
 }
-/* .imgp-point:after {
-    content: '';
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #282828;
-    bottom: -4px;
-    position: absolute;
-} */
+
 .imgp-point.focused {
     outline: 2px solid #21b520;
 }
@@ -97,7 +106,7 @@
 .imgp-line {
   width: 1px;
   height: 1px;
-  background-color: #282828;
+  background-color: #161616;
   position: absolute;
   pointer-events: none;
 }
@@ -182,6 +191,77 @@
     display: block;
 }
 .imgn-text[data-status="edit"] .imgn-move { display: none;}
+
+
+
+
+
+
+
+
+
+/* Point list */
+.imgp-point-list { 
+    position: relative;
+    padding: 10px; 
+    width: calc(40% - 20px); 
+    margin: 0 auto;
+    margin-top: -10px;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+}
+.imgp-point-list>li { 
+    margin: 0; 
+    margin-bottom: 4px; 
+    padding: 0; 
+    display: flex; 
+}
+.imgp-point-list>li:last-child { margin-bottom: 0;}
+.imgp-point-list>li>* { 
+    flex-grow: 1; 
+    font-family: 'Lato';
+    font-size: 11pt;
+}
+.imgp-point-list>li>.imgp-point-list-text {
+    border-radius: 3px;
+    padding: 2px;
+    border: 2px solid transparent;
+}
+.imgp-point-list>li>.imgp-point-list-text:empty:before {
+    content: 'No text';
+    font-style: italic;
+}
+.imgp-point-list>li:before {
+    content: attr(data-index);
+    background: #161616;
+    border-radius: 50%;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Lato';
+    font-size: 10pt;
+    margin-right: 10px;
+}
+.imgp-point-list>li textarea { 
+    border-radius: 3px;
+    border: 2px solid transparent;
+    padding: 2px;
+    display: none; 
+}
+.imgp-point-list>li.imgp-edit textarea { display: block; }
+.imgp-point-list>li.imgp-edit .imgp-point-list-text { display: none; }
+
+
+
+
+
+
+
+
 
 
 /* UI */
