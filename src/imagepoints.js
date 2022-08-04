@@ -3,11 +3,12 @@ class ImagePoints {
     points = []
     currentTool = ''
     options = {
-        pointoffset: {x: 0, y: -20},
+        pointoffset: {x: 0, y: 0, x2: 0, y2: -40},
         callbacks: {
             add: null,
             move: null,
-            modechange: null
+            modechange: null,
+            textchange: null
         },
         pointlist: null
     }
@@ -32,6 +33,11 @@ class ImagePoints {
 
     bindEvents() {
         
+    }
+
+    getGeneratedOffsetCoords(x, y, offset) {
+        const generatedX = (x > this.image.width) ? offset : -offset;
+        const generatedY = (y > this.image.height) ? offset : -offset;
     }
 
     setCurrentTool(type) {
@@ -64,25 +70,29 @@ class ImagePoints {
                     if(this.image.querySelector('.img-text textarea')) { return; }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
-                    const point = this.addPoint(x, y)
-                    point.refreshLine()
+                    const x2 = (clickX+this.options.pointoffset.x2)
+                    const y2 = (clickY+this.options.pointoffset.y2)
+                    const point = this.addPoint(x, y, x2, y2)
                     this.setCurrentTool('')
-                    if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point) }
                 }
                 break;
         }
     }
 
-    addPoint(x, y, x2 = '', y2 = '', text = '') {
+    addPoint(x, y, x2 = null, y2 = null, text = '') {
         const options = {
             x: x,
             y: y,
+            x2: x2,
+            y2: y2,
             index: this.points.length,
             text: text
         }
         const point = new ImagePoint(this.image, options)
         this.points.push(point)
         this.addPointToList(point)
+        point.refreshLine()
+        if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point); }
         return point
     }
 
@@ -90,14 +100,15 @@ class ImagePoints {
         if(this.options.pointlist) {
             const elPointItem = document.createElement('li')
             elPointItem.dataset.index = point.index+1
-            elPointItem.innerHTML = ''
             
             const elPointItemText = document.createElement('div')
             elPointItemText.classList.add('imgp-point-list-text')
+            elPointItemText.innerHTML = point.text
             const text = elPointItem.appendChild(elPointItemText)
 
             const elPointItemTextarea = document.createElement('textarea')
             elPointItemTextarea.classList.add('imgp-point-list-textarea')
+            elPointItemTextarea.value = point.text.replace(/<br\s*[\/]?>/gi, "\n")
             const textarea = elPointItem.appendChild(elPointItemTextarea)
 
             text.addEventListener('click', (e) => {
@@ -106,7 +117,9 @@ class ImagePoints {
             })
 
             textarea.addEventListener('blur', (e) => {
-                text.innerHTML = textarea.value
+                if(typeof this.options.callbacks.textchange === 'function') { this.options.callbacks.textchange(point, point.text, textarea.value); }
+                text.innerHTML = textarea.value.replace(/(?:\r\n|\r|\n)/g, '<br>');
+                point.text = textarea.value
                 elPointItem.classList.remove('imgp-edit')
             })
 
@@ -119,6 +132,7 @@ class ImagePoint {
     image = null
     index = 0
     text = ''
+    coords = {x: 0, y: 0, x2: 0, y2: 0 }
     elems = {
         main: null,
         point: null,
@@ -147,7 +161,7 @@ class ImagePoint {
 
     addPoint(x, y, x2 = null, y2 = null) {
         if(x2==null) { x2 = x }
-        if(y2==null) { y2 = y+25 }
+        if(y2==null) { y2 = y-25 }
 
         //Main
         const elMain = document.createElement('div')
@@ -156,13 +170,13 @@ class ImagePoint {
         //Point
         const elPoint = document.createElement('div')
         elPoint.classList.add('imgp-point')
-        elPoint.style.top = `${y}px`
-        elPoint.style.left = `${x}px`
+        elPoint.style.top = `${y2}px`
+        elPoint.style.left = `${x2}px`
 
         this.elems.point = elMain.appendChild(elPoint)
         this.elems.point.dataset.point = this.index
-        this.elems.point.x = x
-        this.elems.point.y = y
+        this.elems.point.x = x2
+        this.elems.point.y = y2
         
         //Point - indexText
         const elIndexText = document.createElement('div')
@@ -174,8 +188,8 @@ class ImagePoint {
         const elLineEndPoint = document.createElement('div')
         this.elems.lineendpoint = elMain.appendChild(elLineEndPoint)
         this.elems.lineendpoint.classList.add('imgp-point-addline')
-        this.elems.lineendpoint.style.top = `${y2}px`
-        this.elems.lineendpoint.style.left = `${x2}px`
+        this.elems.lineendpoint.style.top = `${y}px`
+        this.elems.lineendpoint.style.left = `${x}px`
 
         $(this.elems.lineendpoint).draggable({
             containment: 'parent',

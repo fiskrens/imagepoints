@@ -2,6 +2,8 @@
 
 //const banana = new ImagePoints('.image-wrapper', {})
 
+$(function() {
+
 document.querySelectorAll('.image-wrapper').forEach((item) => {
     const pointlist = item.nextElementSibling
     console.log(pointlist)
@@ -21,10 +23,17 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
                 } else {
                     document.querySelector('.js-enable-add').classList.remove('active')
                 }
+            },
+            textchange: (point, from, to)  => {
+                console.log(from, to)
             }
         },
         pointlist: pointlist
     })
+
+
+    imagep.addPoint(150, 150, 0, 0, 'Ola bandola')
+    console.log(imagep.points)
 
     document.querySelector('.js-enable-add').addEventListener('click', (e) => {
         imagep.setCurrentTool('add')
@@ -32,3 +41,5 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
 })
 
 
+
+})
