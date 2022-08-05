@@ -3,7 +3,9 @@ class ImagePoints {
     points = []
     currentTool = ''
     options = {
-        pointoffset: {x: 0, y: 0, x2: 0, y2: -40},
+        pointoffset: {x: 0, y: 0, x2: -50, y2: -50},
+        radialoffset: 50,
+        generateOffsetCoords: true,
         callbacks: {
             add: null,
             move: null,
@@ -35,9 +37,37 @@ class ImagePoints {
         
     }
 
-    getGeneratedOffsetCoords(x, y, offset) {
-        const generatedX = (x > this.image.width) ? offset : -offset;
-        const generatedY = (y > this.image.height) ? offset : -offset;
+    getGeneratedCoords_Offset(x, y, xoffset = 0, yoffset = 0) {
+        const generatedX = (x > this.image.clientWidth/2) ? x-xoffset : x+xoffset;
+        const generatedY = (y > this.image.clientHeight/2) ? y-yoffset : y+yoffset;
+        return {x: generatedX, y: generatedY}
+    }
+
+    getGeneratedCoords_Radial(x, y, offset) {
+        const centerX = this.image.clientWidth/2
+        const centerY = this.image.clientHeight/2
+        const d = (Math.atan2(centerY - y, centerX - x))
+        const generatedX = x-(offset * Math.cos(d))
+        const generatedY = y-(offset * Math.sin(d))
+        return {x: generatedX, y: generatedY}
+    }
+
+    getGeneratedCoords_Hourglass(x, y, offset, factor = 0.5) {
+        const centerX = this.image.clientWidth/2
+        const centerY = this.image.clientHeight/2
+        const d = (Math.atan2(centerY - y, centerX - x))
+
+        const radianSlice = 90*(Math.PI/180)
+        const hFactorTimes = Math.ceil(Math.abs(d) / radianSlice)
+        let hFactor = ((Math.abs(d)-((hFactorTimes-1)*radianSlice)) / radianSlice)/hFactorTimes
+        let dEffect = hFactorTimes*hFactor
+        if(hFactorTimes==1) { dEffect = (1-dEffect)*-1 }
+        if(Math.ceil(d / radianSlice) <= 0) { dEffect = -dEffect }
+
+        //d = 0*(Math.PI/180)
+        const generatedX = x-(offset * Math.cos(d-dEffect))
+        const generatedY = y-(offset * Math.sin(d-dEffect))
+        return {x: generatedX, y: generatedY}
     }
 
     setCurrentTool(type) {
@@ -70,9 +100,9 @@ class ImagePoints {
                     if(this.image.querySelector('.img-text textarea')) { return; }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
-                    const x2 = (clickX+this.options.pointoffset.x2)
-                    const y2 = (clickY+this.options.pointoffset.y2)
-                    const point = this.addPoint(x, y, x2, y2)
+                    //const x2 = (this.options.generateOffsetCoords) ? : (clickX+this.options.pointoffset.x2)
+                    //const y2 = (clickY+this.options.pointoffset.y2)
+                    const point = this.addPoint(x, y)
                     this.setCurrentTool('')
                 }
                 break;
@@ -80,6 +110,16 @@ class ImagePoints {
     }
 
     addPoint(x, y, x2 = null, y2 = null, text = '') {
+        if(this.options.generateOffsetCoords) {
+            //const generatedCoords = this.getGeneratedCoords_Offset(x, y, this.options.pointoffset.x2, this.options.pointoffset.y2)
+            const generatedCoords = this.getGeneratedCoords_Hourglass(x, y, this.options.radialoffset)
+            if(x2==null) { x2 = generatedCoords.x }
+            if(y2==null) { y2 = generatedCoords.y }
+        } else {
+            if(x2==null) { x2 = x+this.options.pointoffset.x2 }
+            if(y2==null) { y2 = y+this.options.pointoffset.y2 }
+        }
+
         const options = {
             x: x,
             y: y,
@@ -88,6 +128,7 @@ class ImagePoints {
             index: this.points.length,
             text: text
         }
+
         const point = new ImagePoint(this.image, options)
         this.points.push(point)
         this.addPointToList(point)
@@ -159,10 +200,7 @@ class ImagePoint {
         })
     }
 
-    addPoint(x, y, x2 = null, y2 = null) {
-        if(x2==null) { x2 = x }
-        if(y2==null) { y2 = y-25 }
-
+    addPoint(x, y, x2, y2) {
         //Main
         const elMain = document.createElement('div')
         elMain.classList.add('imgp-point-wrapper')

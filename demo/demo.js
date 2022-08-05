@@ -10,14 +10,14 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
     const imagep = item.ImagePoints({
         callbacks: {
             add: (point) => {
-                console.log('added point')
-                console.log(point)
+                //console.log('added point')
+                //console.log(point)
             },
             move: () => {
 
             },
             modechange: (type) => {
-                console.log('mode change')
+                //console.log('mode change')
                 if(type==='add') {
                     document.querySelector('.js-enable-add').classList.add('active')
                 } else {
@@ -32,7 +32,13 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
     })
 
 
-    imagep.addPoint(150, 150, 0, 0, 'Ola bandola')
+    imagep.addPoint(340, 226, null, null, 'Ola bandola')
+    // imagep.addPoint(600, 100, null, null, 'Ola bandola')
+    // imagep.addPoint(600, 350, null, null, 'Ola bandola')
+    // imagep.addPoint(150, 350, null, null, 'Ola bandola')
+    
+
+
     console.log(imagep.points)
 
     document.querySelector('.js-enable-add').addEventListener('click', (e) => {
