@@ -8,6 +8,7 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
     const pointlist = item.nextElementSibling
     console.log(pointlist)
     const imagep = item.ImagePoints({
+        type: 'radial',
         callbacks: {
             add: (point) => {
                 //console.log('added point')

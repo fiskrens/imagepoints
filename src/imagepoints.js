@@ -3,9 +3,13 @@ class ImagePoints {
     points = []
     currentTool = ''
     options = {
-        pointoffset: {x: 0, y: 0, x2: -50, y2: -50},
-        radialoffset: 50,
-        generateOffsetCoords: true,
+        pointoffset: {x: 0, y: 0, x2: 0, y2: -50},
+        generateoffset: {
+            active: true,
+            type: '',
+            radialoffset: 50,
+            factor: 0.2
+        },
         callbacks: {
             add: null,
             move: null,
@@ -37,6 +41,18 @@ class ImagePoints {
         
     }
 
+    getGeneratedCoords(x, y) {
+        switch(this.options.generateoffset.type) {
+            case 'radial':
+                return this.getGeneratedCoords_Radial(x, y, this.options.generateoffset.radialoffset)
+            case 'hourglass':
+                return this.getGeneratedCoords_Hourglass(x, y, this.options.generateoffset.radialoffset, this.options.generateoffset.factor)
+            default:
+            case 'offset':
+                return this.getGeneratedCoords_Offset(x, y, this.options.pointoffset.x2, this.options.pointoffset.y2)
+        }
+    }
+
     getGeneratedCoords_Offset(x, y, xoffset = 0, yoffset = 0) {
         const generatedX = (x > this.image.clientWidth/2) ? x-xoffset : x+xoffset;
         const generatedY = (y > this.image.clientHeight/2) ? y-yoffset : y+yoffset;
@@ -56,17 +72,15 @@ class ImagePoints {
         const centerX = this.image.clientWidth/2
         const centerY = this.image.clientHeight/2
         const d = (Math.atan2(centerY - y, centerX - x))
-
         const radianSlice = 90*(Math.PI/180)
         const hFactorTimes = Math.ceil(Math.abs(d) / radianSlice)
         let hFactor = ((Math.abs(d)-((hFactorTimes-1)*radianSlice)) / radianSlice)/hFactorTimes
-        let dEffect = hFactorTimes*hFactor
+        let dEffect = (hFactorTimes*hFactor)
         if(hFactorTimes==1) { dEffect = (1-dEffect)*-1 }
         if(Math.ceil(d / radianSlice) <= 0) { dEffect = -dEffect }
 
-        //d = 0*(Math.PI/180)
-        const generatedX = x-(offset * Math.cos(d-dEffect))
-        const generatedY = y-(offset * Math.sin(d-dEffect))
+        const generatedX = x-(offset * Math.cos(d-dEffect*factor))
+        const generatedY = y-(offset * Math.sin(d-dEffect*factor))
         return {x: generatedX, y: generatedY}
     }
 
@@ -100,8 +114,6 @@ class ImagePoints {
                     if(this.image.querySelector('.img-text textarea')) { return; }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
-                    //const x2 = (this.options.generateOffsetCoords) ? : (clickX+this.options.pointoffset.x2)
-                    //const y2 = (clickY+this.options.pointoffset.y2)
                     const point = this.addPoint(x, y)
                     this.setCurrentTool('')
                 }
@@ -110,9 +122,10 @@ class ImagePoints {
     }
 
     addPoint(x, y, x2 = null, y2 = null, text = '') {
-        if(this.options.generateOffsetCoords) {
+        if(this.options.generateoffset.active) {
             //const generatedCoords = this.getGeneratedCoords_Offset(x, y, this.options.pointoffset.x2, this.options.pointoffset.y2)
-            const generatedCoords = this.getGeneratedCoords_Hourglass(x, y, this.options.radialoffset)
+            //const generatedCoords = this.getGeneratedCoords_Hourglass(x, y, this.options.generateoffset.radialoffset)
+            const generatedCoords = this.getGeneratedCoords(x, y)
             if(x2==null) { x2 = generatedCoords.x }
             if(y2==null) { y2 = generatedCoords.y }
         } else {
@@ -194,8 +207,6 @@ class ImagePoint {
         this.addPoint(options.x, options.y, options.x2, options.y2)
 
         window.addEventListener('resize', () => {
-            //this.resizePixelValues(this.elem)
-            //this.resizePixelValues(this.elems.line)
             this.refreshLine()
         })
     }
