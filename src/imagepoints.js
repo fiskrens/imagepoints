@@ -33,6 +33,7 @@ class ImagePoints {
 
         image.style.position = 'relative'
         image.querySelector('img').classList.add('imgn-image')
+        image.querySelector('img').setAttribute('draggable', false)
         this.points = []
         this.image = image
         this.currentTool = ''
