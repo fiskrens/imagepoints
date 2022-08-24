@@ -61,10 +61,11 @@
     color: white;
     font-family: 'Lato';
     font-size: 10pt;
-    cursor: move;
+    cursor: default;
     transform: translateX(-50%) translateY(-50%);
     z-index: 2;
 }
+.image-wrapper:not(.imgp-static) .imgp-point { cursor: move; }
 
 .imgp-point.focused {
     outline: 2px solid #21b520;
@@ -87,9 +88,11 @@
     align-items: center;
     transform: translateX(-50%) translateY(-50%);
 }
-.imgp-point-addline:hover {
+
+.image-wrapper:not(.imgp-static) .imgp-point-addline:hover {
     background: #21b520;
 }
+
 .imgp-point-addline:after {
     content: '';
     border-radius: 50%;

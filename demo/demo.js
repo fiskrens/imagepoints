@@ -9,6 +9,7 @@ document.querySelectorAll('.image-wrapper').forEach((item) => {
     console.log(pointlist)
     const imagep = item.ImagePoints({
         type: 'radial',
+        editable: false,
         callbacks: {
             add: (point) => {
                 //console.log('added point')

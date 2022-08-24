@@ -3,6 +3,7 @@ class ImagePoints {
     points = []
     currentTool = ''
     options = {
+        editable: true, 
         pointoffset: {x: 0, y: 0, x2: 0, y2: -50},
         generateoffset: {
             active: true,
@@ -35,6 +36,8 @@ class ImagePoints {
         this.points = []
         this.image = image
         this.currentTool = ''
+
+        if(!this.options.editable) { this.image.classList.add('imgp-static'); }
     }
 
     bindEvents() {
@@ -139,7 +142,8 @@ class ImagePoints {
             x2: x2,
             y2: y2,
             index: this.points.length,
-            text: text
+            text: text,
+            editable: this.options.editable
         }
 
         const point = new ImagePoint(this.image, options)
@@ -166,6 +170,7 @@ class ImagePoints {
             const textarea = elPointItem.appendChild(elPointItemTextarea)
 
             text.addEventListener('click', (e) => {
+                if(!this.options.editable) { return false; }
                 elPointItem.classList.add('imgp-edit')
                 textarea.focus()
             })
@@ -186,6 +191,7 @@ class ImagePoint {
     image = null
     index = 0
     text = ''
+    options = {}
     coords = {x: 0, y: 0, x2: 0, y2: 0 }
     elems = {
         main: null,
@@ -204,6 +210,7 @@ class ImagePoint {
         this.image = image
         this.index = options.index
         this.text = options.text
+        this.options = options
         this.addPoint(options.x, options.y, options.x2, options.y2)
 
         window.addEventListener('resize', () => {
@@ -240,8 +247,12 @@ class ImagePoint {
         this.elems.lineendpoint.style.top = `${y}px`
         this.elems.lineendpoint.style.left = `${x}px`
 
+        
         $(this.elems.lineendpoint).draggable({
             containment: 'parent',
+            start: (e, ui) => {
+                if(!this.options.editable) { return false; }
+            },
             drag: (e, ui) => {
                 const x = ui.position.left
                 const y = ui.position.top
@@ -258,6 +269,7 @@ class ImagePoint {
                 this.refreshLine()
             }
         })
+        
 
         this.elems.main = this.image.appendChild(elMain)
 
@@ -272,6 +284,7 @@ class ImagePoint {
             //handle: '.imgn-move',
             containment: 'parent',
             start: (e, ui) => {
+                if(!this.options.editable) { return false; }
                 this.elems.point.x = ui.position.left
                 this.elems.point.y = ui.position.top
             },
