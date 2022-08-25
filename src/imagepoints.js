@@ -7,9 +7,9 @@ class ImagePoints {
         pointoffset: {x: 0, y: 0, x2: 0, y2: -50},
         generateoffset: {
             active: true,
-            type: '',
+            type: 'hourglass',
             radialoffset: 50,
-            factor: 0.2
+            factor: 0.5
         },
         callbacks: {
             add: null,
@@ -21,7 +21,11 @@ class ImagePoints {
     }
     
     constructor(element, options) {
-        this.options = {...this.options, ...options}
+        this.options = {...this.options, ...options, 
+            generateoffset:{...this.options.generateoffset, ...options.generateoffset},
+            callbacks:{...this.options.callbacks, ...options.callbacks},
+            pointoffset:{...this.options.pointoffset, ...options.pointoffset},
+        }
         this.initImage(element)
         this.bindEvents()
     }
@@ -82,6 +86,7 @@ class ImagePoints {
         let dEffect = (hFactorTimes*hFactor)
         if(hFactorTimes==1) { dEffect = (1-dEffect)*-1 }
         if(Math.ceil(d / radianSlice) <= 0) { dEffect = -dEffect }
+        factor *= (90*(Math.PI/180))
 
         const generatedX = x-(offset * Math.cos(d-dEffect*factor))
         const generatedY = y-(offset * Math.sin(d-dEffect*factor))
@@ -101,17 +106,7 @@ class ImagePoints {
         switch(this.currentTool) {
             default:
             case '':
-                this.image.querySelectorAll('.imgp-point-wrapper').forEach(item => {
-                    item.classList.remove('focused')
-                })
-                //Focus point
-                if(event.target.classList.contains('imgp-point')) {
-                    this.points[event.target.dataset.point].focusPoint()
-                }
-
-                if(event.target.classList.contains('imgp-value')) {
-                    this.points[event.target.parentElement.dataset.point].focusPoint()
-                }
+                this.focusPointElement(event.target)
                 break;
             case 'add':
                 if(event.target.classList.contains('imgn-image')) {
@@ -125,10 +120,19 @@ class ImagePoints {
         }
     }
 
-    addPoint(x, y, x2 = null, y2 = null, text = '') {
+    focusPointElement(elem) {
+        this.image.querySelectorAll('.imgp-point-wrapper').forEach(item => {
+            item.classList.remove('focused')
+        })
+
+        const point = (elem.classList.contains('imgp-point')) ? this.points[elem.dataset.point] : this.points[elem.parentElement.dataset.point];
+        if(point) {
+            point.focusPoint();
+        }
+    }
+
+    addPoint(x, y, x2 = null, y2 = null, text = '', uID = null) {
         if(this.options.generateoffset.active) {
-            //const generatedCoords = this.getGeneratedCoords_Offset(x, y, this.options.pointoffset.x2, this.options.pointoffset.y2)
-            //const generatedCoords = this.getGeneratedCoords_Hourglass(x, y, this.options.generateoffset.radialoffset)
             const generatedCoords = this.getGeneratedCoords(x, y)
             if(x2==null) { x2 = generatedCoords.x }
             if(y2==null) { y2 = generatedCoords.y }
@@ -144,7 +148,8 @@ class ImagePoints {
             y2: y2,
             index: this.points.length,
             text: text,
-            editable: this.options.editable
+            editable: this.options.editable,
+            uid: uID
         }
 
         const point = new ImagePoint(this.image, options)
@@ -159,16 +164,14 @@ class ImagePoints {
         if(this.options.pointlist) {
             const elPointItem = document.createElement('li')
             elPointItem.dataset.index = point.index+1
-            
-            const elPointItemText = document.createElement('div')
-            elPointItemText.classList.add('imgp-point-list-text')
-            elPointItemText.innerHTML = point.text
-            const text = elPointItem.appendChild(elPointItemText)
 
-            const elPointItemTextarea = document.createElement('textarea')
-            elPointItemTextarea.classList.add('imgp-point-list-textarea')
-            elPointItemTextarea.value = point.text.replace(/<br\s*[\/]?>/gi, "\n")
-            const textarea = elPointItem.appendChild(elPointItemTextarea)
+            elPointItem.innerHTML = `
+                <div class="imgp-point-list-text">${point.text}</div>
+                <textarea class="imgp-point-list-textarea">${point.text.replace(/<br\s*[\/]?>/gi, "\n")}</textarea>
+            ` 
+            
+            const text = elPointItem.querySelector('.imgp-point-list-text')
+            const textarea = elPointItem.querySelector('.imgp-point-list-textarea')
 
             text.addEventListener('click', (e) => {
                 if(!this.options.editable) { return false; }
@@ -186,11 +189,29 @@ class ImagePoints {
             this.options.pointlist.appendChild(elPointItem)
         }
     }
+
+    getDataset() {
+        return this.points.map((item) => {
+            return {
+                coords: item.coords, 
+                text: item.text, 
+                index: item.index,
+                uid: item.uid
+            }
+        })
+    }
+
+    setDataset(dataset) {
+        dataset.forEach((item) => {
+            this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid);
+        })
+    }
 }
 
 class ImagePoint {
     image = null
     index = 0
+    uid = null
     text = ''
     options = {}
     coords = {x: 0, y: 0, x2: 0, y2: 0 }
@@ -212,6 +233,8 @@ class ImagePoint {
         this.index = options.index
         this.text = options.text
         this.options = options
+        this.uid = options.uid
+        this.coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
         this.addPoint(options.x, options.y, options.x2, options.y2)
 
         window.addEventListener('resize', () => {
@@ -220,99 +243,58 @@ class ImagePoint {
     }
 
     addPoint(x, y, x2, y2) {
-        //Main
-        const elMain = document.createElement('div')
-        elMain.classList.add('imgp-point-wrapper')
+        const pointWrapper = document.createElement('div')
+        pointWrapper.classList.add('imgp-point-wrapper')
 
-        //Point
-        const elPoint = document.createElement('div')
-        elPoint.classList.add('imgp-point')
-        elPoint.style.top = `${y2}px`
-        elPoint.style.left = `${x2}px`
+        pointWrapper.innerHTML = `
+            <div class="imgp-line"></div>
+            <div class="imgp-point" style="top: ${y2}px; left: ${x2}px;" data-point="${this.index}">
+                <div class="imgp-value">${this.index+1}</div>
+            </div>
+            <div class="imgp-point-addline" style="top: ${y}px; left: ${x}px;">
+        `
 
-        this.elems.point = elMain.appendChild(elPoint)
-        this.elems.point.dataset.point = this.index
-        this.elems.point.x = x2
-        this.elems.point.y = y2
-        
-        //Point - indexText
-        const elIndexText = document.createElement('div')
-        elIndexText.classList.add('imgp-value')
-        elIndexText.innerHTML = this.index+1
-        this.elems.indextext = elPoint.appendChild(elIndexText)
+        this.elems.main = this.image.appendChild(pointWrapper)
+        this.elems.point = this.elems.main.querySelector('.imgp-point')
+        this.elems.lineendpoint = this.elems.main.querySelector('.imgp-point-addline')
 
-        //Endpoint
-        const elLineEndPoint = document.createElement('div')
-        this.elems.lineendpoint = elMain.appendChild(elLineEndPoint)
-        this.elems.lineendpoint.classList.add('imgp-point-addline')
-        this.elems.lineendpoint.style.top = `${y}px`
-        this.elems.lineendpoint.style.left = `${x}px`
-
-        
-        $(this.elems.lineendpoint).draggable({
-            containment: 'parent',
-            start: (e, ui) => {
-                if(!this.options.editable) { return false; }
-            },
-            drag: (e, ui) => {
-                const x = ui.position.left
-                const y = ui.position.top
-                const left = x+(this.elems.lineendpoint.clientWidth/2)
-                const top = y+(this.elems.lineendpoint.clientHeight/2)
-                ui.position.left = left
-                ui.position.top = top
-                this.elems.lineendpoint.x = x
-                this.elems.lineendpoint.y = y
-                this.refreshLine(null, {x: left, y: top})
-            },
-            stop: () => {
-                this.convertPixelsToPercentage(this.elems.lineendpoint)
-                this.refreshLine()
-            }
-        })
-        
-
-        this.elems.main = this.image.appendChild(elMain)
-
-        //Line
-        const elLine = document.createElement('div')
-        elLine.classList.add('imgp-line')
-        this.elems.line = this.elems.main.appendChild(elLine)
-
-
-        
-        $(this.elems.point).draggable({
-            //handle: '.imgn-move',
-            containment: 'parent',
-            start: (e, ui) => {
-                if(!this.options.editable) { return false; }
-                this.elems.point.x = ui.position.left
-                this.elems.point.y = ui.position.top
-            },
-            drag: (e, ui) => {
-                const x = ui.position.left
-                const y = ui.position.top
-                const left = x+(this.elems.point.clientWidth/2)
-                const top = y+(this.elems.point.clientHeight/2)
-                ui.position.left = left
-                ui.position.top = top
-                this.elems.point.x = x
-                this.elems.point.y = y
-                this.refreshLine({x: left, y: top})
-            },
-            stop: (e, ui) => {
-                this.convertPixelsToPercentage(this.elems.point)
-                this.refreshLine()
-            }
-        })
+        this.enableDraggable(this.elems.point)
+        this.enableDraggable(this.elems.lineendpoint, true)
 
         this.convertPixelsToPercentage(this.elems.point)
         this.convertPixelsToPercentage(this.elems.lineendpoint)
     }
 
+    enableDraggable(elem, endpoint = false) {
+        $(elem).draggable({
+            containment: 'parent',
+            start: (e, ui) => {
+                if(!this.options.editable) { return false; }
+            },
+            drag: (e, ui) => {
+                elem.x = ui.position.left
+                elem.y = ui.position.top
+                ui.position.left = elem.x+(elem.clientWidth/2)
+                ui.position.top = elem.y+(elem.clientHeight/2)
+                if(endpoint) {
+                    this.coords.x = ui.position.left
+                    this.coords.y = ui.position.top
+                    this.refreshLine(null, {x: ui.position.left, y: ui.position.top})
+                } else {
+                    this.coords.x2 = ui.position.left
+                    this.coords.y2 = ui.position.top
+                    this.refreshLine({x: ui.position.left, y: ui.position.top})
+                }
+            },
+            stop: () => {
+                this.convertPixelsToPercentage(elem)
+                this.refreshLine()
+            }
+        })
+    }
+
     focusPoint() {
         this.elems.main.classList.add('focused')
-        
     }
 
     unfocusPoint() {
@@ -400,7 +382,6 @@ class ImagePoint {
         line.style.height = height + 'px';
     }
 }
-
 
 Element.prototype.ImagePoints = function(options) {
     return new ImagePoints(this, options)
