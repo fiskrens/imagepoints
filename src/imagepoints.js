@@ -330,25 +330,14 @@ class ImagePoint {
             y: to.offsetTop
         }
 
-        let CA   = Math.abs(pointB.y - pointA.y)
-        let CO   = Math.abs(pointB.x - pointA.x)
-        let H    = Math.sqrt(CA*CA + CO*CO)
-        let ANG  = 180 / Math.PI * Math.acos( CA/H )
+        const pos = new Vector2(pointB.x, pointB.y)
+        const direction = pos.subtract(pointA)
+        const hypotenuse = direction.magnitude()
+        let angle = (Math.PI/2 + direction.angle()) * 180/Math.PI
+        const top = ((pointB.y-pointA.y)/2 + pointA.y)-hypotenuse/2
+        const left = ((pointB.x-pointA.x)/2 + pointA.x)
 
-        let top = (pointB.y > pointA.y) ? ((pointB.y-pointA.y)/2 + pointA.y) : ((pointA.y-pointB.y)/2 + pointB.y)
-        let left = (pointB.x > pointA.x) ? ((pointB.x-pointA.x)/2 + pointA.x) : ((pointA.x-pointB.x)/2 + pointB.x)
-        top-= H/2;
-
-        if(
-            (pointA.y < pointB.y && pointA.x < pointB.x) || 
-            (pointB.y < pointA.y && pointB.x < pointA.x) || 
-            (pointA.y > pointB.y && pointA.x > pointB.x) || 
-            (pointB.y > pointA.y && pointB.x > pointA.x)
-        ){
-            ANG *= -1;
-        }
-        
-        this.setLineCSS(ANG, top, left, H)
+        this.setLineCSS(angle, top, left, hypotenuse)
     }
 
     setLineCSS(angle, top, left, height) {
