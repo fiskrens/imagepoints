@@ -19,6 +19,7 @@ class ImagePoints {
         },
         pointlist: null
     }
+    generator = null
     
     constructor(element, options) {
         this.options = {...this.options, ...options, 
@@ -41,56 +42,36 @@ class ImagePoints {
         this.points = []
         this.image = image
         this.currentTool = ''
-
+        this.generator = this.createGenerator()
+        
         if(!this.options.editable) { this.image.classList.add('imgp-static'); }
+    }
+
+    createGenerator() {
+        switch(this.options.generateoffset.type) {
+            case 'radial':
+                return new RadialPointGenerator(
+                    new Vector2(this.image.clientWidth, this.image.clientHeight),
+                    this.options.generateoffset.radialoffset
+                )
+            case 'hourglass':
+                return new HourGlassPointGenerator(
+                    new Vector2(this.image.clientWidth, this.image.clientHeight),
+                    this.options.generateoffset.radialoffset,
+                    this.options.generateoffset.factor
+                )
+            default:
+            case 'offset':
+                return new OffsetPointGenerator(
+                    new Vector2(this.image.clientWidth, this.image.clientHeight),
+                    this.options.pointoffset.x2,
+                    this.options.pointoffset.y2
+                )
+        }
     }
 
     bindEvents() {
         
-    }
-
-    getGeneratedCoords(x, y) {
-        switch(this.options.generateoffset.type) {
-            case 'radial':
-                return this.getGeneratedCoords_Radial(x, y, this.options.generateoffset.radialoffset)
-            case 'hourglass':
-                return this.getGeneratedCoords_Hourglass(x, y, this.options.generateoffset.radialoffset, this.options.generateoffset.factor)
-            default:
-            case 'offset':
-                return this.getGeneratedCoords_Offset(x, y, this.options.pointoffset.x2, this.options.pointoffset.y2)
-        }
-    }
-
-    getGeneratedCoords_Offset(x, y, xoffset = 0, yoffset = 0) {
-        const generatedX = (x > this.image.clientWidth/2) ? x-xoffset : x+xoffset;
-        const generatedY = (y > this.image.clientHeight/2) ? y-yoffset : y+yoffset;
-        return {x: generatedX, y: generatedY}
-    }
-
-    getGeneratedCoords_Radial(x, y, offset) {
-        const centerX = this.image.clientWidth/2
-        const centerY = this.image.clientHeight/2
-        const d = (Math.atan2(centerY - y, centerX - x))
-        const generatedX = x-(offset * Math.cos(d))
-        const generatedY = y-(offset * Math.sin(d))
-        return {x: generatedX, y: generatedY}
-    }
-
-    getGeneratedCoords_Hourglass(x, y, offset, factor = 0.5) {
-        const centerX = this.image.clientWidth/2
-        const centerY = this.image.clientHeight/2
-        const d = (Math.atan2(centerY - y, centerX - x))
-        const radianSlice = 90*(Math.PI/180)
-        const hFactorTimes = Math.ceil(Math.abs(d) / radianSlice)
-        let hFactor = ((Math.abs(d)-((hFactorTimes-1)*radianSlice)) / radianSlice)/hFactorTimes
-        let dEffect = (hFactorTimes*hFactor)
-        if(hFactorTimes==1) { dEffect = (1-dEffect)*-1 }
-        if(Math.ceil(d / radianSlice) <= 0) { dEffect = -dEffect }
-        factor *= (90*(Math.PI/180))
-
-        const generatedX = x-(offset * Math.cos(d-dEffect*factor))
-        const generatedY = y-(offset * Math.sin(d-dEffect*factor))
-        return {x: generatedX, y: generatedY}
     }
 
     setCurrentTool(type) {
@@ -133,7 +114,7 @@ class ImagePoints {
 
     addPoint(x, y, x2 = null, y2 = null, text = '', uID = null) {
         if(this.options.generateoffset.active) {
-            const generatedCoords = this.getGeneratedCoords(x, y)
+            const generatedCoords = this.generator.generate(x, y)
             if(x2==null) { x2 = generatedCoords.x }
             if(y2==null) { y2 = generatedCoords.y }
         } else {
