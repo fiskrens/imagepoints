@@ -12,7 +12,7 @@ class OffsetPointGenerator {
     }
 
     toString() {
-        return `RadialPointGenerator{ size = ${this.size}, offset = ${this.offset} }`
+        return `OffsetPointGenerator{ center = ${this.center}, xOffset = ${this.xOffset}, yOffset = ${this.yOffset} }`
     }
 }
 
