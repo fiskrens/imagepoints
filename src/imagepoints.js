@@ -136,7 +136,7 @@ class ImagePoints {
         const point = new ImagePoint(this.image, options)
         this.points.push(point)
         this.addPointToList(point)
-        point.refreshLine()
+        point.line.refresh(point.coords)
         if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point); }
         return point
     }
@@ -219,7 +219,7 @@ class ImagePoint {
         this.addPoint(options.x, options.y, options.x2, options.y2)
 
         window.addEventListener('resize', () => {
-            this.refreshLine()
+            this.line.refresh(this.coords)
         })
     }
 
@@ -238,6 +238,7 @@ class ImagePoint {
         this.elems.main = this.image.appendChild(pointWrapper)
         this.elems.point = this.elems.main.querySelector('.imgp-point')
         this.elems.lineendpoint = this.elems.main.querySelector('.imgp-point-addline')
+        this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords)
 
         this.enableDraggable(this.elems.point)
         this.enableDraggable(this.elems.lineendpoint, true)
@@ -260,16 +261,15 @@ class ImagePoint {
                 if(endpoint) {
                     this.coords.x = ui.position.left
                     this.coords.y = ui.position.top
-                    this.refreshLine(null, {x: ui.position.left, y: ui.position.top})
                 } else {
                     this.coords.x2 = ui.position.left
                     this.coords.y2 = ui.position.top
-                    this.refreshLine({x: ui.position.left, y: ui.position.top})
                 }
+                this.line.refresh(this.coords)
             },
             stop: () => {
                 this.convertPixelsToPercentage(elem)
-                this.refreshLine()
+                this.line.refresh(this.coords)
             }
         })
     }
@@ -281,7 +281,6 @@ class ImagePoint {
     unfocusPoint() {
         this.elems.main.classList.remove('focused')
     }
-
 
     getCurrentText() {
         let text = this.elems.text.innerHTML
@@ -316,42 +315,57 @@ class ImagePoint {
         el.style.left = `${factorW*100}%`
         el.style.top = `${factorH*100}%`
     }
+}
 
-    refreshLine(pA = null, pB = null) {
-        const from = this.elems.point
-        const to = this.elems.lineendpoint
 
-        const pointA = pA ?? {
-            x: from.offsetLeft,
-            y: from.offsetTop
-        }
-        const pointB = pB ?? {
-            x: to.offsetLeft,
-            y: to.offsetTop
-        }
 
-        const pos = new Vector2(pointB.x, pointB.y)
-        const direction = pos.subtract(pointA)
-        const hypotenuse = direction.magnitude()
-        let angle = (Math.PI/2 + direction.angle()) * 180/Math.PI
-        const top = ((pointB.y-pointA.y)/2 + pointA.y)-hypotenuse/2
-        const left = ((pointB.x-pointA.x)/2 + pointA.x)
 
-        this.setLineCSS(angle, top, left, hypotenuse)
+
+
+class ImagePointLine {
+    constructor(element, coords) {
+        this.element = element
+        this.refresh(coords)
     }
 
-    setLineCSS(angle, top, left, height) {
-        const line = this.elems.main.querySelector('.imgp-line')
-        line.style["-webkit-transform"] = 'rotate('+ angle +'deg)';
-        line.style["-moz-transform"] = 'rotate('+ angle +'deg)';
-        line.style["-ms-transform"] = 'rotate('+ angle +'deg)';
-        line.style["-o-transform"] = 'rotate('+ angle +'deg)';
-        line.style["-transform"] = 'rotate('+ angle +'deg)';
-        line.style.top    = top+'px';
-        line.style.left   = left+'px';
-        line.style.height = height + 'px';
+    refresh(coords) {
+        this.pointA = new Vector2(coords.x, coords.y)
+        this.pointB = new Vector2(coords.x2, coords.y2)
+        this.direction = this.pointB.subtract(this.pointA)
+        this.setCSS()
+    }
+
+    angle() {
+        return (Math.PI/2 + this.direction.angle()) * 180/Math.PI
+    }
+
+    calcTop() {
+        return ((this.pointB.y-this.pointA.y)/2 + this.pointA.y)-this.direction.magnitude()/2
+    }
+
+    calcLeft() {
+        return ((this.pointB.x-this.pointA.x)/2 + this.pointA.x)
+    }
+
+    magnitude() {
+        return this.direction.magnitude()
+    }
+
+    setCSS() {
+        const angle = this.angle();
+        this.element.style["-webkit-transform"] = 'rotate('+ angle +'deg)';
+        this.element.style["-moz-transform"] = 'rotate('+ angle +'deg)';
+        this.element.style["-ms-transform"] = 'rotate('+ angle +'deg)';
+        this.element.style["-o-transform"] = 'rotate('+ angle +'deg)';
+        this.element.style["-transform"] = 'rotate('+ angle +'deg)';
+        this.element.style.top    = this.calcTop()+'px';
+        this.element.style.left   = this.calcLeft()+'px';
+        this.element.style.height = this.magnitude()+'px';
     }
 }
+
+
+
 
 Element.prototype.ImagePoints = function(options) {
     return new ImagePoints(this, options)
