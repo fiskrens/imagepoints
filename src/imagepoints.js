@@ -28,7 +28,6 @@ class ImagePoints {
             pointoffset:{...this.options.pointoffset, ...options.pointoffset},
         }
         this.initImage(element)
-        this.bindEvents()
     }
 
     initImage(image) {
@@ -68,10 +67,6 @@ class ImagePoints {
                     this.options.pointoffset.y2
                 )
         }
-    }
-
-    bindEvents() {
-        
     }
 
     setCurrentTool(type) {
@@ -189,6 +184,7 @@ class ImagePoints {
     }
 }
 
+
 class ImagePoint {
     image = null
     index = 0
@@ -199,11 +195,11 @@ class ImagePoint {
     elems = {
         main: null,
         point: null,
+        pointTag: null,
         textarea: null,
         text: null,
         indextext: null,
         move: null,
-        lineendpoint: null,
         line: null
     }
     isInEdit = false
@@ -216,35 +212,35 @@ class ImagePoint {
         this.options = options
         this.uid = options.uid
         this.coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
-        this.addPoint(options.x, options.y, options.x2, options.y2)
+        this.addPointDOM()
 
         window.addEventListener('resize', () => {
             this.line.refresh(this.coords)
         })
     }
 
-    addPoint(x, y, x2, y2) {
+    addPointDOM() {
         const pointWrapper = document.createElement('div')
         pointWrapper.classList.add('imgp-point-wrapper')
 
         pointWrapper.innerHTML = `
             <div class="imgp-line"></div>
-            <div class="imgp-point" style="top: ${y2}px; left: ${x2}px;" data-point="${this.index}">
+            <div class="imgp-point" style="top: ${this.coords.y2}px; left: ${this.coords.x2}px;" data-point="${this.index}">
                 <div class="imgp-value">${this.index+1}</div>
             </div>
-            <div class="imgp-point-addline" style="top: ${y}px; left: ${x}px;">
+            <div class="imgp-point-tag" style="top: ${this.coords.y}px; left: ${this.coords.x}px;">
         `
 
         this.elems.main = this.image.appendChild(pointWrapper)
         this.elems.point = this.elems.main.querySelector('.imgp-point')
-        this.elems.lineendpoint = this.elems.main.querySelector('.imgp-point-addline')
+        this.elems.pointTag = this.elems.main.querySelector('.imgp-point-tag')
         this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords)
 
         this.enableDraggable(this.elems.point)
-        this.enableDraggable(this.elems.lineendpoint, true)
+        this.enableDraggable(this.elems.pointTag, true)
 
         this.convertPixelsToPercentage(this.elems.point)
-        this.convertPixelsToPercentage(this.elems.lineendpoint)
+        this.convertPixelsToPercentage(this.elems.pointTag)
     }
 
     enableDraggable(elem, endpoint = false) {
@@ -318,10 +314,6 @@ class ImagePoint {
 }
 
 
-
-
-
-
 class ImagePointLine {
     constructor(element, coords) {
         this.element = element
@@ -363,8 +355,6 @@ class ImagePointLine {
         this.element.style.height = this.magnitude()+'px';
     }
 }
-
-
 
 
 Element.prototype.ImagePoints = function(options) {

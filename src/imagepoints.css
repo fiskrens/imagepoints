@@ -75,7 +75,7 @@
 }
 
 
-.imgp-point-addline {
+.imgp-point-tag {
     position: absolute !important;
     width: 20px;
     height: 20px;
@@ -89,11 +89,11 @@
     transform: translateX(-50%) translateY(-50%);
 }
 
-.image-wrapper:not(.imgp-static) .imgp-point-addline:hover {
+.image-wrapper:not(.imgp-static) .imgp-point-tag:hover {
     background: #21b520;
 }
 
-.imgp-point-addline:after {
+.imgp-point-tag:after {
     content: '';
     border-radius: 50%;
     width: 5px;
@@ -102,7 +102,7 @@
     display: block;
 }
 
-.imgp-point.focused .imgp-point-addline {
+.imgp-point.focused .imgp-point-tag {
     background: #21b520;
 }
 
