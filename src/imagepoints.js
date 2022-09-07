@@ -327,16 +327,16 @@ class ImagePointLine {
         this.setCSS()
     }
 
-    angle() {
-        return (Math.PI/2 + this.direction.angle()) * 180/Math.PI
+    angleDeg() {
+        return this.direction.angleDeg()
     }
 
     calcTop() {
-        return ((this.pointB.y-this.pointA.y)/2 + this.pointA.y)-this.direction.magnitude()/2
+        return (this.pointB.y - this.pointA.y)/2 + this.pointA.y
     }
 
     calcLeft() {
-        return ((this.pointB.x-this.pointA.x)/2 + this.pointA.x)
+        return (this.pointB.x - this.pointA.x)/2 + this.pointA.x - this.direction.magnitude()/2
     }
 
     magnitude() {
@@ -344,15 +344,11 @@ class ImagePointLine {
     }
 
     setCSS() {
-        const angle = this.angle();
-        this.element.style["-webkit-transform"] = 'rotate('+ angle +'deg)';
-        this.element.style["-moz-transform"] = 'rotate('+ angle +'deg)';
-        this.element.style["-ms-transform"] = 'rotate('+ angle +'deg)';
-        this.element.style["-o-transform"] = 'rotate('+ angle +'deg)';
-        this.element.style["-transform"] = 'rotate('+ angle +'deg)';
-        this.element.style.top    = this.calcTop()+'px';
-        this.element.style.left   = this.calcLeft()+'px';
-        this.element.style.height = this.magnitude()+'px';
+        const angle = this.angleDeg()
+        this.element.style["transform"] = 'rotate('+ angle +'deg)'
+        this.element.style.top    = this.calcTop()+'px'
+        this.element.style.left   = this.calcLeft()+'px'
+        this.element.style.width  = this.magnitude()+'px'
     }
 }
 
