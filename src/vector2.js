@@ -9,23 +9,23 @@ class Vector2 {
     }
 
     multiply(value) {
-        return new Vector2(this.x * value, this.y * value);
+        return new Vector2(this.x * value, this.y * value)
     }
 
     divide(value) {
-        return new Vector2(this.x / value, this.y / value);
+        return new Vector2(this.x / value, this.y / value)
     }
 
     normalize() {
-        return this.divide(this.magnitude()); 
+        return this.divide(this.magnitude())
     }
 
     magnitudeSquared() {
-        return this.x * this.x + this.y * this.y;
+        return this.x * this.x + this.y * this.y
     }
 
     magnitude() {
-        return Math.sqrt(this.magnitudeSquared(this));
+        return Math.sqrt(this.magnitudeSquared(this))
     }
 
     add(value) {
@@ -37,6 +37,10 @@ class Vector2 {
     }
 
     angle() {
-        return Math.atan2(this.y, this.x);
+        return Math.atan2(this.y, this.x)
+    }
+
+    angleDeg() {
+        return Math.atan2(this.y, this.x) * 180/Math.PI
     }
 }
