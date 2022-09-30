@@ -236,13 +236,17 @@ class ImagePoint {
         this.options = options
         this.uid = options.uid
         this.coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
+        this.coordsPercentage = {}
         this.addPointDOM()
 
+
+        this.changePointPixelsToPercentage()
         window.addEventListener('resize', () => {
             //console.log('refresh Line')
             //this.line.refresh()
+            this.changePointPixelsToPercentage()
             this.refreshCoords()
-            this.line.refresh(this.coords)
+            //this.line.refresh(this.coords)
         })
     }
 
@@ -331,12 +335,11 @@ class ImagePoint {
     refreshCoords() {
         const height = this.image.offsetHeight
         const width = this.image.offsetWidth
-        console.log('before', this.coords);
+        console.log('before', this.coords, this.coordsPercentage);
         this.coords = this.convertPercentageToPixels(this.coordsPercentage, width, height)
     }
 
     convertPercentageToPixels(coords, containerWidth, containerHeight) {
-        console.log('after', this.coords);
         return {
             x: coords.x / 100 * containerWidth ,
             x2: coords.x2 / 100 * containerWidth,
