@@ -132,6 +132,18 @@ class ImagePoints {
         this.points.push(point)
         this.addPointToList(point)
         point.line.refresh(point.coords)
+
+        point.elems.point.addEventListener('pointtag_dragged', (e) => {
+            point.coords.x = e.detail.x
+            point.coords.y = e.detail.y
+            point.line.refresh(point.coords)
+        })
+        point.elems.point.addEventListener('point_dragged', (e) => {
+            point.coords.x2 = e.detail.x
+            point.coords.y2 = e.detail.y
+            point.line.refresh(point.coords)
+        })
+
         if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point); }
         return point
     }
@@ -244,30 +256,32 @@ class ImagePoint {
     }
 
     enableDraggable(elem, endpoint = false) {
-        $(elem).draggable({
-            containment: 'parent',
-            start: (e, ui) => {
-                if(!this.options.editable) { return false; }
-            },
-            drag: (e, ui) => {
-                elem.x = ui.position.left
-                elem.y = ui.position.top
-                ui.position.left = elem.x+(elem.clientWidth/2)
-                ui.position.top = elem.y+(elem.clientHeight/2)
-                if(endpoint) {
-                    this.coords.x = ui.position.left
-                    this.coords.y = ui.position.top
-                } else {
-                    this.coords.x2 = ui.position.left
-                    this.coords.y2 = ui.position.top
-                }
-                this.line.refresh(this.coords)
-            },
-            stop: () => {
-                this.convertPixelsToPercentage(elem)
-                this.line.refresh(this.coords)
-            }
-        })
+        const dragElem = new PointDraggable(this, elem, endpoint)
+
+        // $(elem).draggable({
+        //     containment: 'parent',
+        //     start: (e, ui) => {
+        //         if(!this.options.editable) { return false; }
+        //     },
+        //     drag: (e, ui) => {
+        //         elem.x = ui.position.left
+        //         elem.y = ui.position.top
+        //         ui.position.left = elem.x+(elem.clientWidth/2)
+        //         ui.position.top = elem.y+(elem.clientHeight/2)
+        //         if(endpoint) {
+        //             this.coords.x = ui.position.left
+        //             this.coords.y = ui.position.top
+        //         } else {
+        //             this.coords.x2 = ui.position.left
+        //             this.coords.y2 = ui.position.top
+        //         }
+        //         this.line.refresh(this.coords)
+        //     },
+        //     stop: () => {
+        //         this.convertPixelsToPercentage(elem)
+        //         this.line.refresh(this.coords)
+        //     }
+        // })
     }
 
     focusPoint() {
@@ -297,7 +311,7 @@ class ImagePoint {
 
     cancelPoint() {
         this.isInEdit = false
-        this.elems.main.dataset.status = ''
+        this.elems.main.dataset.status = ''        
     }
 
     convertPixelsToPercentage(el) {
@@ -312,6 +326,93 @@ class ImagePoint {
         el.style.top = `${factorH*100}%`
     }
 }
+
+
+class PointDraggable {
+    point = null
+    elemConstraint = null
+    elem = null
+    draggingActive = false
+    coords = {}
+    event = false
+
+    constructor(point, elem, isEndpoint = false) {
+        this.point = point
+        this.elemConstraint = point.image
+        this.elem = elem
+        this.isEndpoint = isEndpoint
+        this.event = new CustomEvent('point_dragged', {detail: {x: 0, y: 0}})
+        this.eventTag = new CustomEvent('pointtag_dragged', {detail: {x: 0, y: 0}})
+
+        this.bindEvents()
+    }
+
+    bindEvents() {
+        this.elem.addEventListener('mousedown', (e) => {
+            this.dragStart(e)
+        })
+        document.addEventListener('mouseup', (e) => {
+            this.dragEnd(e)
+        })
+        document.addEventListener('dragend', (e) => {
+            this.dragEnd(e)
+        })
+        document.addEventListener('mousemove', (e) => {
+            this.mouseMove(e)
+        })
+    }
+
+    mouseMove(e) {
+        if(this.draggingActive) { this.dragging(e) }
+    }
+
+    dragStart(e) {
+        this.draggingActive = true
+    }
+
+    dragEnd(e) {
+        this.draggingActive = false    
+    }
+
+    dragging(e) {
+        const x = e.clientX - this.elemConstraint.offsetLeft
+        const y = e.clientY - this.elemConstraint.offsetTop
+        const coords = this.dragElement(x, y)
+        const event = (this.isEndpoint) ? this.eventTag : this.event
+        this.dispatchDragEvent(event, coords)
+    }
+
+    dispatchDragEvent(event, coords) {
+        event.detail.x = coords.x
+        event.detail.y = coords.y
+        this.point.elems.point.dispatchEvent(event)
+    }
+
+    dragElement(x, y) {
+        const newCoords = this.getConstraint(x, y)
+        this.elem.style.left = `${newCoords.x}px`
+        this.elem.style.top = `${newCoords.y}px`
+        return {x: newCoords.x, y: newCoords.y}
+    }
+
+    getConstraintCoords() {
+        const pointElem = (this.isEndpoint) ? this.point.elems.pointTag : this.point.elems.point
+        return {
+            x: 0+(pointElem.offsetWidth/2),
+            y: 0+(pointElem.offsetHeight/2),
+            x2: this.elemConstraint.offsetWidth-(pointElem.offsetWidth/2),
+            y2: this.elemConstraint.offsetHeight-(pointElem.offsetHeight/2)
+        }
+    }
+
+    getConstraint(elemX, elemY) {
+        const constraints = this.getConstraintCoords()
+        const x = Math.min(Math.max(constraints.x, elemX), constraints.x2)
+        const y = Math.min(Math.max(constraints.y, elemY), constraints.y2)
+        return {x: x, y: y}
+    }
+}
+
 
 
 class ImagePointLine {

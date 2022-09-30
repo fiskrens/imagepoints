@@ -46,6 +46,7 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
+    user-select: none;
 }
 .imgp-point-wrapper>* { pointer-events: all;}
 
@@ -64,6 +65,7 @@
     cursor: default;
     transform: translateX(-50%) translateY(-50%);
     z-index: 2;
+    user-select: none;
 }
 .image-wrapper:not(.imgp-static) .imgp-point { cursor: move; }
 
