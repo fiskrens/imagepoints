@@ -138,6 +138,7 @@
 .image-wrapper[data-tooltype="add"] {
     cursor:crosshair;
 }
+.image-wrapper>img { width: 100%; }
 
 .imgn-point {
     background: pink;

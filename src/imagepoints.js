@@ -43,7 +43,7 @@ class ImagePoints {
         this.currentTool = ''
         this.generator = this.createGenerator()
         
-        if(!this.options.editable) { this.image.classList.add('imgp-static'); }
+        if(!this.options.editable) { this.image.classList.add('imgp-static') }
     }
 
     createGenerator() {
@@ -72,7 +72,7 @@ class ImagePoints {
     setCurrentTool(type) {
         if(type !== this.currentTool && typeof this.options.callbacks.modechange == 'function') { this.options.callbacks.modechange(type) }
         this.currentTool = type
-        this.image.setAttribute('data-tooltype', type);
+        this.image.setAttribute('data-tooltype', type)
     }
 
     imageClicked(event) {
@@ -83,16 +83,16 @@ class ImagePoints {
             default:
             case '':
                 this.focusPointElement(event.target)
-                break;
+                break
             case 'add':
                 if(event.target.classList.contains('imgn-image')) {
-                    if(this.image.querySelector('.img-text textarea')) { return; }
+                    if(this.image.querySelector('.img-text textarea')) { return }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
                     const point = this.addPoint(x, y)
                     this.setCurrentTool('')
                 }
-                break;
+                break
         }
     }
 
@@ -101,9 +101,9 @@ class ImagePoints {
             item.classList.remove('focused')
         })
 
-        const point = (elem.classList.contains('imgp-point')) ? this.points[elem.dataset.point] : this.points[elem.parentElement.dataset.point];
+        const point = (elem.classList.contains('imgp-point')) ? this.points[elem.dataset.point] : this.points[elem.parentElement.dataset.point]
         if(point) {
-            point.focusPoint();
+            point.focusPoint()
         }
     }
 
@@ -144,7 +144,7 @@ class ImagePoints {
             point.line.refresh(point.coords)
         })
 
-        if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point); }
+        if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point) }
         return point
     }
 
@@ -162,14 +162,14 @@ class ImagePoints {
             const textarea = elPointItem.querySelector('.imgp-point-list-textarea')
 
             text.addEventListener('click', (e) => {
-                if(!this.options.editable) { return false; }
+                if(!this.options.editable) { return false }
                 elPointItem.classList.add('imgp-edit')
                 textarea.focus()
             })
 
             textarea.addEventListener('blur', (e) => {
-                if(typeof this.options.callbacks.textchange === 'function') { this.options.callbacks.textchange(point, point.text, textarea.value); }
-                text.innerHTML = textarea.value.replace(/(?:\r\n|\r|\n)/g, '<br>');
+                if(typeof this.options.callbacks.textchange === 'function') { this.options.callbacks.textchange(point, point.text, textarea.value) }
+                text.innerHTML = textarea.value.replace(/(?:\r\n|\r|\n)/g, '<br>')
                 point.text = textarea.value
                 elPointItem.classList.remove('imgp-edit')
             })
@@ -182,6 +182,7 @@ class ImagePoints {
         return this.points.map((item) => {
             return {
                 coords: item.coords, 
+                coordsPercentage: this.convertToPercentage(item.coords, this.image.offsetWidth, this.image.offsetHeight),
                 text: item.text, 
                 index: item.index,
                 uid: item.uid
@@ -191,9 +192,20 @@ class ImagePoints {
 
     setDataset(dataset) {
         dataset.forEach((item) => {
-            this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid);
+            this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid)
         })
     }
+
+    convertToPercentage(coords, containerWidth, containerHeight) {
+        return {
+            x: coords.x / containerWidth * 100,
+            x2: coords.x2 / containerWidth * 100,
+            y: coords.y / containerHeight * 100,
+            y2: coords.y2 / containerHeight * 100
+        }
+    }
+
+    
 }
 
 
@@ -227,6 +239,9 @@ class ImagePoint {
         this.addPointDOM()
 
         window.addEventListener('resize', () => {
+            //console.log('refresh Line')
+            //this.line.refresh()
+            this.refreshCoords()
             this.line.refresh(this.coords)
         })
     }
@@ -251,37 +266,22 @@ class ImagePoint {
         this.enableDraggable(this.elems.point)
         this.enableDraggable(this.elems.pointTag, true)
 
-        this.convertPixelsToPercentage(this.elems.point)
-        this.convertPixelsToPercentage(this.elems.pointTag)
+        this.changePointPixelsToPercentage()
+    }
+
+    changePointPixelsToPercentage() {
+        const coordsPoint = this.convertPixelsToPercentage(this.elems.point)
+        const coordsEndpoint = this.convertPixelsToPercentage(this.elems.pointTag)
+        this.coordsPercentage = {
+            x: coordsPoint.x,
+            y: coordsPoint.y,
+            x2: coordsEndpoint.x,
+            y2: coordsEndpoint.y
+        }
     }
 
     enableDraggable(elem, endpoint = false) {
         const dragElem = new PointDraggable(this, elem, endpoint)
-
-        // $(elem).draggable({
-        //     containment: 'parent',
-        //     start: (e, ui) => {
-        //         if(!this.options.editable) { return false; }
-        //     },
-        //     drag: (e, ui) => {
-        //         elem.x = ui.position.left
-        //         elem.y = ui.position.top
-        //         ui.position.left = elem.x+(elem.clientWidth/2)
-        //         ui.position.top = elem.y+(elem.clientHeight/2)
-        //         if(endpoint) {
-        //             this.coords.x = ui.position.left
-        //             this.coords.y = ui.position.top
-        //         } else {
-        //             this.coords.x2 = ui.position.left
-        //             this.coords.y2 = ui.position.top
-        //         }
-        //         this.line.refresh(this.coords)
-        //     },
-        //     stop: () => {
-        //         this.convertPixelsToPercentage(elem)
-        //         this.line.refresh(this.coords)
-        //     }
-        // })
     }
 
     focusPoint() {
@@ -299,7 +299,7 @@ class ImagePoint {
     }
 
     setCurrentText(text) {
-        text = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        text = text.replace(/(?:\r\n|\r|\n)/g, '<br>')
         this.elems.text.innerHTML = text
     }
     
@@ -324,6 +324,25 @@ class ImagePoint {
 
         el.style.left = `${factorW*100}%`
         el.style.top = `${factorH*100}%`
+
+        return {x: factorW*100, y: factorH*100}
+    }
+
+    refreshCoords() {
+        const height = this.image.offsetHeight
+        const width = this.image.offsetWidth
+        console.log('before', this.coords);
+        this.coords = this.convertPercentageToPixels(this.coordsPercentage, width, height)
+    }
+
+    convertPercentageToPixels(coords, containerWidth, containerHeight) {
+        console.log('after', this.coords);
+        return {
+            x: coords.x / 100 * containerWidth ,
+            x2: coords.x2 / 100 * containerWidth,
+            y: coords.y / 100 * containerHeight,
+            y2: coords.y2 / 100 * containerHeight
+        }
     }
 }
 
@@ -371,7 +390,8 @@ class PointDraggable {
     }
 
     dragEnd(e) {
-        this.draggingActive = false    
+        this.draggingActive = false
+        this.point.changePointPixelsToPercentage()
     }
 
     dragging(e) {
@@ -416,12 +436,15 @@ class PointDraggable {
 
 
 class ImagePointLine {
+    coords = {}
     constructor(element, coords) {
         this.element = element
+        this.coords = coords
         this.refresh(coords)
     }
 
-    refresh(coords) {
+    refresh(coords = null) {
+        if(!coords) { coords = this.coords }
         this.pointA = new Vector2(coords.x, coords.y)
         this.pointB = new Vector2(coords.x2, coords.y2)
         this.direction = this.pointB.subtract(this.pointA)

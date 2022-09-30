@@ -42,6 +42,7 @@
         })
 
         document.querySelector('.js-get-dataset').addEventListener('click', (e) => {
+            console.log(imagep.getDataset())
             console.log(JSON.stringify(imagep.getDataset()))
         })
 
