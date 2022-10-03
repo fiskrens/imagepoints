@@ -43,7 +43,7 @@ class ImagePoints {
         this.currentTool = ''
         this.generator = this.createGenerator()
         
-        if(!this.options.editable) { this.image.classList.add('imgp-static'); }
+        if(!this.options.editable) { this.image.classList.add('imgp-static') }
     }
 
     createGenerator() {
@@ -72,7 +72,7 @@ class ImagePoints {
     setCurrentTool(type) {
         if(type !== this.currentTool && typeof this.options.callbacks.modechange == 'function') { this.options.callbacks.modechange(type) }
         this.currentTool = type
-        this.image.setAttribute('data-tooltype', type);
+        this.image.setAttribute('data-tooltype', type)
     }
 
     imageClicked(event) {
@@ -83,16 +83,16 @@ class ImagePoints {
             default:
             case '':
                 this.focusPointElement(event.target)
-                break;
+                break
             case 'add':
                 if(event.target.classList.contains('imgn-image')) {
-                    if(this.image.querySelector('.img-text textarea')) { return; }
+                    if(this.image.querySelector('.img-text textarea')) { return }
                     const x = (clickX+this.options.pointoffset.x)
                     const y = (clickY+this.options.pointoffset.y)
                     const point = this.addPoint(x, y)
                     this.setCurrentTool('')
                 }
-                break;
+                break
         }
     }
 
@@ -101,10 +101,15 @@ class ImagePoints {
             item.classList.remove('focused')
         })
 
-        const point = (elem.classList.contains('imgp-point')) ? this.points[elem.dataset.point] : this.points[elem.parentElement.dataset.point];
+        const point = (elem.classList.contains('imgp-point')) ? this.points[elem.dataset.point] : this.points[elem.parentElement.dataset.point]
         if(point) {
-            point.focusPoint();
+            point.focusPoint()
         }
+    }
+
+    addPointPercentage(x, y, x2, y2, text = '', uID = null) {
+        const coords = {x: x, y: y, x2: x2, y2: y2}
+        const pixelCoords = this.convertToPercentage(coords, this.image.offsetWidth, this.image.offsetHeight)
     }
 
     addPoint(x, y, x2 = null, y2 = null, text = '', uID = null) {
@@ -144,7 +149,7 @@ class ImagePoints {
             point.line.refresh(point.coords)
         })
 
-        if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point); }
+        if(typeof this.options.callbacks.add === 'function') { this.options.callbacks.add(point) }
         return point
     }
 
@@ -162,14 +167,14 @@ class ImagePoints {
             const textarea = elPointItem.querySelector('.imgp-point-list-textarea')
 
             text.addEventListener('click', (e) => {
-                if(!this.options.editable) { return false; }
+                if(!this.options.editable) { return false }
                 elPointItem.classList.add('imgp-edit')
                 textarea.focus()
             })
 
             textarea.addEventListener('blur', (e) => {
-                if(typeof this.options.callbacks.textchange === 'function') { this.options.callbacks.textchange(point, point.text, textarea.value); }
-                text.innerHTML = textarea.value.replace(/(?:\r\n|\r|\n)/g, '<br>');
+                if(typeof this.options.callbacks.textchange === 'function') { this.options.callbacks.textchange(point, point.text, textarea.value) }
+                text.innerHTML = textarea.value.replace(/(?:\r\n|\r|\n)/g, '<br>')
                 point.text = textarea.value
                 elPointItem.classList.remove('imgp-edit')
             })
@@ -182,6 +187,7 @@ class ImagePoints {
         return this.points.map((item) => {
             return {
                 coords: item.coords, 
+                coordsPercentage: this.convertToPercentage(item.coords, this.image.offsetWidth, this.image.offsetHeight),
                 text: item.text, 
                 index: item.index,
                 uid: item.uid
@@ -191,9 +197,24 @@ class ImagePoints {
 
     setDataset(dataset) {
         dataset.forEach((item) => {
-            this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid);
+            if(item.coordsPercentage !== undefined) {
+                this.addPointPercentage(item.coordsPercentage.x, item.coordsPercentage.y, item.coordsPercentage.x2, item.coordsPercentage.y2, item.text, item.uid)
+            } else {
+                this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid)
+            }
         })
     }
+
+    convertToPercentage(coords, containerWidth, containerHeight) {
+        return {
+            x: coords.x / containerWidth * 100,
+            x2: coords.x2 / containerWidth * 100,
+            y: coords.y / containerHeight * 100,
+            y2: coords.y2 / containerHeight * 100
+        }
+    }
+
+    
 }
 
 
@@ -224,10 +245,13 @@ class ImagePoint {
         this.options = options
         this.uid = options.uid
         this.coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
+        this.coordsPercentage = {}
         this.addPointDOM()
 
+
+        this.changePointPixelsToPercentage()
         window.addEventListener('resize', () => {
-            this.line.refresh(this.coords)
+            this.refreshCoords()
         })
     }
 
@@ -246,42 +270,29 @@ class ImagePoint {
         this.elems.main = this.image.appendChild(pointWrapper)
         this.elems.point = this.elems.main.querySelector('.imgp-point')
         this.elems.pointTag = this.elems.main.querySelector('.imgp-point-tag')
-        this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords)
+        this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords, this.image)
 
         this.enableDraggable(this.elems.point)
         this.enableDraggable(this.elems.pointTag, true)
 
-        this.convertPixelsToPercentage(this.elems.point)
-        this.convertPixelsToPercentage(this.elems.pointTag)
+        this.changePointPixelsToPercentage()
+    }
+
+    changePointPixelsToPercentage() {
+        const coordsPoint = this.convertPixelsToPercentage(this.elems.point)
+        const coordsEndpoint = this.convertPixelsToPercentage(this.elems.pointTag)
+
+        this.coordsPercentage = {
+            x: coordsEndpoint.x,
+            y: coordsEndpoint.y,
+            x2: coordsPoint.x,
+            y2: coordsPoint.y
+        }
+        console.log(this.coordsPercentage)
     }
 
     enableDraggable(elem, endpoint = false) {
         const dragElem = new PointDraggable(this, elem, endpoint)
-
-        // $(elem).draggable({
-        //     containment: 'parent',
-        //     start: (e, ui) => {
-        //         if(!this.options.editable) { return false; }
-        //     },
-        //     drag: (e, ui) => {
-        //         elem.x = ui.position.left
-        //         elem.y = ui.position.top
-        //         ui.position.left = elem.x+(elem.clientWidth/2)
-        //         ui.position.top = elem.y+(elem.clientHeight/2)
-        //         if(endpoint) {
-        //             this.coords.x = ui.position.left
-        //             this.coords.y = ui.position.top
-        //         } else {
-        //             this.coords.x2 = ui.position.left
-        //             this.coords.y2 = ui.position.top
-        //         }
-        //         this.line.refresh(this.coords)
-        //     },
-        //     stop: () => {
-        //         this.convertPixelsToPercentage(elem)
-        //         this.line.refresh(this.coords)
-        //     }
-        // })
     }
 
     focusPoint() {
@@ -299,7 +310,7 @@ class ImagePoint {
     }
 
     setCurrentText(text) {
-        text = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        text = text.replace(/(?:\r\n|\r|\n)/g, '<br>')
         this.elems.text.innerHTML = text
     }
     
@@ -315,6 +326,10 @@ class ImagePoint {
     }
 
     convertPixelsToPercentage(el) {
+        if(el.style.left.includes('%') && el.style.top.includes('%')) {
+            return {x: parseFloat(el.style.left.replace('%','')), y: parseFloat(el.style.top.replace('%',''))}
+        }
+
         const elementLeft = el.style.left.replace('px','')
         const elementTop = el.style.top.replace('px','')
         const cWidth = el.parentElement.clientWidth
@@ -324,6 +339,24 @@ class ImagePoint {
 
         el.style.left = `${factorW*100}%`
         el.style.top = `${factorH*100}%`
+
+        return {x: factorW*100, y: factorH*100}
+    }
+
+    refreshCoords() {
+        const height = this.image.offsetHeight
+        const width = this.image.offsetWidth
+        //console.log('before', this.coords, this.coordsPercentage);
+        this.coords = this.convertPercentageToPixels(this.coordsPercentage, width, height)
+    }
+
+    convertPercentageToPixels(coords, containerWidth, containerHeight) {
+        return {
+            x: coords.x / 100 * containerWidth ,
+            x2: coords.x2 / 100 * containerWidth,
+            y: coords.y / 100 * containerHeight,
+            y2: coords.y2 / 100 * containerHeight
+        }
     }
 }
 
@@ -371,7 +404,8 @@ class PointDraggable {
     }
 
     dragEnd(e) {
-        this.draggingActive = false    
+        this.draggingActive = false
+        this.point.changePointPixelsToPercentage()
     }
 
     dragging(e) {
@@ -416,12 +450,16 @@ class PointDraggable {
 
 
 class ImagePointLine {
-    constructor(element, coords) {
+    coords = {}
+    constructor(element, coords, image) {
         this.element = element
+        this.coords = coords
+        this.image = image
         this.refresh(coords)
     }
 
-    refresh(coords) {
+    refresh(coords = null) {
+        if(!coords) { coords = this.coords }
         this.pointA = new Vector2(coords.x, coords.y)
         this.pointB = new Vector2(coords.x2, coords.y2)
         this.direction = this.pointB.subtract(this.pointA)
@@ -444,12 +482,24 @@ class ImagePointLine {
         return this.direction.magnitude()
     }
 
+    calcTopPercentage() {
+        return this.calcTop() / this.image.offsetHeight * 100
+    }
+
+    calcLeftPercentage() {
+        return this.calcLeft() / this.image.offsetWidth * 100
+    }
+
+    calcWidthPercentage() {
+        return this.magnitude() / this.image.offsetWidth * 100
+    }
+
     setCSS() {
         const angle = this.angleDeg()
         this.element.style["transform"] = 'rotate('+ angle +'deg)'
-        this.element.style.top    = this.calcTop()+'px'
-        this.element.style.left   = this.calcLeft()+'px'
-        this.element.style.width  = this.magnitude()+'px'
+        this.element.style.top    = this.calcTopPercentage()+'%'
+        this.element.style.left   = this.calcLeftPercentage()+'%'
+        this.element.style.width  = this.calcWidthPercentage()+'%'
     }
 }
 
