@@ -107,6 +107,11 @@ class ImagePoints {
         }
     }
 
+    addPointPercentage(x, y, x2, y2, text = '', uID = null) {
+        const coords = {x: x, y: y, x2: x2, y2: y2}
+        const pixelCoords = this.convertToPercentage(coords, this.image.offsetWidth, this.image.offsetHeight)
+    }
+
     addPoint(x, y, x2 = null, y2 = null, text = '', uID = null) {
         if(this.options.generateoffset.active) {
             const generatedCoords = this.generator.generate(x, y)
@@ -192,7 +197,11 @@ class ImagePoints {
 
     setDataset(dataset) {
         dataset.forEach((item) => {
-            this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid)
+            if(item.coordsPercentage !== undefined) {
+                this.addPointPercentage(item.coordsPercentage.x, item.coordsPercentage.y, item.coordsPercentage.x2, item.coordsPercentage.y2, item.text, item.uid)
+            } else {
+                this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid)
+            }
         })
     }
 
@@ -279,7 +288,7 @@ class ImagePoint {
             x2: coordsPoint.x,
             y2: coordsPoint.y
         }
-        //console.log(this.coordsPercentage)
+        console.log(this.coordsPercentage)
     }
 
     enableDraggable(elem, endpoint = false) {
