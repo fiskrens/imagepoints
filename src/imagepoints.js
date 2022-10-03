@@ -265,7 +265,7 @@ class ImagePoint {
         this.elems.main = this.image.appendChild(pointWrapper)
         this.elems.point = this.elems.main.querySelector('.imgp-point')
         this.elems.pointTag = this.elems.main.querySelector('.imgp-point-tag')
-        this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords)
+        this.line = new ImagePointLine(this.elems.main.querySelector('.imgp-line'), this.coords, this.image)
 
         this.enableDraggable(this.elems.point)
         this.enableDraggable(this.elems.pointTag, true)
@@ -276,12 +276,14 @@ class ImagePoint {
     changePointPixelsToPercentage() {
         const coordsPoint = this.convertPixelsToPercentage(this.elems.point)
         const coordsEndpoint = this.convertPixelsToPercentage(this.elems.pointTag)
+
         this.coordsPercentage = {
-            x: coordsPoint.x,
-            y: coordsPoint.y,
-            x2: coordsEndpoint.x,
-            y2: coordsEndpoint.y
+            x: coordsEndpoint.x,
+            y: coordsEndpoint.y,
+            x2: coordsPoint.x,
+            y2: coordsPoint.y
         }
+        //console.log(this.coordsPercentage)
     }
 
     enableDraggable(elem, endpoint = false) {
@@ -319,6 +321,10 @@ class ImagePoint {
     }
 
     convertPixelsToPercentage(el) {
+        if(el.style.left.includes('%') && el.style.top.includes('%')) {
+            return {x: parseFloat(el.style.left.replace('%','')), y: parseFloat(el.style.top.replace('%',''))}
+        }
+
         const elementLeft = el.style.left.replace('px','')
         const elementTop = el.style.top.replace('px','')
         const cWidth = el.parentElement.clientWidth
@@ -335,7 +341,7 @@ class ImagePoint {
     refreshCoords() {
         const height = this.image.offsetHeight
         const width = this.image.offsetWidth
-        console.log('before', this.coords, this.coordsPercentage);
+        //console.log('before', this.coords, this.coordsPercentage);
         this.coords = this.convertPercentageToPixels(this.coordsPercentage, width, height)
     }
 
@@ -394,6 +400,7 @@ class PointDraggable {
 
     dragEnd(e) {
         this.draggingActive = false
+        console.log('dragEnd')
         this.point.changePointPixelsToPercentage()
     }
 
@@ -440,9 +447,10 @@ class PointDraggable {
 
 class ImagePointLine {
     coords = {}
-    constructor(element, coords) {
+    constructor(element, coords, image) {
         this.element = element
         this.coords = coords
+        this.image = image
         this.refresh(coords)
     }
 
@@ -470,12 +478,24 @@ class ImagePointLine {
         return this.direction.magnitude()
     }
 
+    calcTopPercentage() {
+        return this.calcTop() / this.image.offsetHeight * 100
+    }
+
+    calcLeftPercentage() {
+        return this.calcLeft() / this.image.offsetWidth * 100
+    }
+
+    calcWidthPercentage() {
+        return this.magnitude() / this.image.offsetWidth * 100
+    }
+
     setCSS() {
         const angle = this.angleDeg()
         this.element.style["transform"] = 'rotate('+ angle +'deg)'
-        this.element.style.top    = this.calcTop()+'px'
-        this.element.style.left   = this.calcLeft()+'px'
-        this.element.style.width  = this.magnitude()+'px'
+        this.element.style.top    = this.calcTopPercentage()+'%'
+        this.element.style.left   = this.calcLeftPercentage()+'%'
+        this.element.style.width  = this.calcWidthPercentage()+'%'
     }
 }
 
