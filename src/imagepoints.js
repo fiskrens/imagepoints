@@ -242,11 +242,7 @@ class ImagePoint {
 
         this.changePointPixelsToPercentage()
         window.addEventListener('resize', () => {
-            //console.log('refresh Line')
-            //this.line.refresh()
-            this.changePointPixelsToPercentage()
             this.refreshCoords()
-            //this.line.refresh(this.coords)
         })
     }
 
@@ -400,7 +396,6 @@ class PointDraggable {
 
     dragEnd(e) {
         this.draggingActive = false
-        console.log('dragEnd')
         this.point.changePointPixelsToPercentage()
     }
 
