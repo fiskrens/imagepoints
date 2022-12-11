@@ -409,8 +409,9 @@ class PointDraggable {
     }
 
     dragging(e) {
-        const x = e.pageX - this.elemConstraint.offsetLeft
-        const y = e.pageY - this.elemConstraint.offsetTop
+        const imagePageRect = this.elemConstraint.getBoundingClientRect()
+        const x = e.pageX - this.elemConstraint.offsetLeft - imagePageRect.left - window.scrollX
+        const y = e.pageY - this.elemConstraint.offsetTop - imagePageRect.top - window.scrollY
         const coords = this.dragElement(x, y)
         const event = (this.isEndpoint) ? this.eventTag : this.event
         this.dispatchDragEvent(event, coords)
