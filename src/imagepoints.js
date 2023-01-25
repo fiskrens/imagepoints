@@ -76,8 +76,8 @@ class ImagePoints {
     }
 
     imageClicked(event) {
-        const clickX =   event.pageX - this.image.offsetLeft
-        const clickY =   event.pageY - this.image.offsetTop
+        const clickX =   event.pageX //- this.image.offsetLeft
+        const clickY =   event.pageY //- this.image.offsetTop
 
         switch(this.currentTool) {
             default:
@@ -288,7 +288,6 @@ class ImagePoint {
             x2: coordsPoint.x,
             y2: coordsPoint.y
         }
-        console.log(this.coordsPercentage)
     }
 
     enableDraggable(elem, endpoint = false) {
@@ -346,7 +345,6 @@ class ImagePoint {
     refreshCoords() {
         const height = this.image.offsetHeight
         const width = this.image.offsetWidth
-        //console.log('before', this.coords, this.coordsPercentage);
         this.coords = this.convertPercentageToPixels(this.coordsPercentage, width, height)
     }
 
@@ -410,8 +408,8 @@ class PointDraggable {
 
     dragging(e) {
         const imagePageRect = this.elemConstraint.getBoundingClientRect()
-        const x = e.pageX - this.elemConstraint.offsetLeft - imagePageRect.left - window.scrollX
-        const y = e.pageY - this.elemConstraint.offsetTop - imagePageRect.top - window.scrollY
+        const x = e.pageX - imagePageRect.left - window.scrollX
+        const y = e.pageY - imagePageRect.top - window.scrollY
         const coords = this.dragElement(x, y)
         const event = (this.isEndpoint) ? this.eventTag : this.event
         this.dispatchDragEvent(event, coords)
