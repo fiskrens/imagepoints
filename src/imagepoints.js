@@ -107,11 +107,6 @@ class ImagePoints {
         }
     }
 
-    addPointPercentage(x, y, x2, y2, text = '', uID = null) {
-        const coords = {x: x, y: y, x2: x2, y2: y2}
-        const pixelCoords = this.convertToPercentage(coords, this.image.offsetWidth, this.image.offsetHeight)
-    }
-
     addPoint(x, y, x2 = null, y2 = null, text = '', uID = null) {
         if(this.options.generateoffset.active) {
             const generatedCoords = this.generator.generate(x, y)
@@ -197,11 +192,17 @@ class ImagePoints {
 
     setDataset(dataset) {
         dataset.forEach((item) => {
+            let coords = item.coords
+            let {x, y, x2, y2} = item.coords
+            
             if(item.coordsPercentage !== undefined) {
-                this.addPointPercentage(item.coordsPercentage.x, item.coordsPercentage.y, item.coordsPercentage.x2, item.coordsPercentage.y2, item.text, item.uid)
-            } else {
-                this.addPoint(item.coords.x, item.coords.y, item.coords.x2, item.coords.y2, item.text, item.uid)
+                ({x, y, x2, y2} = item.coordsPercentage)
+                x = x.toString() + '%'
+                y = y.toString() + '%'
+                x2 = x2.toString() + '%'
+                y2 = y2.toString() + '%'
             }
+            this.addPoint(x, y, x2, y2, item.text, item.uid)
         })
     }
 
@@ -213,8 +214,6 @@ class ImagePoints {
             y2: coords.y2 / containerHeight * 100
         }
     }
-
-    
 }
 
 
@@ -244,10 +243,19 @@ class ImagePoint {
         this.text = options.text
         this.options = options
         this.uid = options.uid
-        this.coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
-        this.coordsPercentage = {}
-        this.addPointDOM()
 
+        this.coords = {}
+        this.coordsPercentage = {}
+
+        const coords = {x: options.x, y: options.y, x2: options.x2, y2: options.y2}
+        if(coords.x.toString().includes('%')) {
+            this.coordsPercentage = coords
+            this.coords = this.convertPercentageToPixels(coords, this.image.offsetWidth, this.image.offsetHeight)
+        } else {
+            this.coords = coords
+        }
+
+        this.addPointDOM()
 
         this.changePointPixelsToPercentage()
         window.addEventListener('resize', () => {
@@ -349,12 +357,27 @@ class ImagePoint {
     }
 
     convertPercentageToPixels(coords, containerWidth, containerHeight) {
+        coords = this.removePercentageSigns(coords)
         return {
-            x: coords.x / 100 * containerWidth ,
+            x: coords.x / 100 * containerWidth,
             x2: coords.x2 / 100 * containerWidth,
             y: coords.y / 100 * containerHeight,
             y2: coords.y2 / 100 * containerHeight
         }
+    }
+
+    removePercentageSigns(obj) {
+        const {x, y, x2, y2} = obj
+        return {
+            x: this.removePercentageSign(x), 
+            y: this.removePercentageSign(y), 
+            x2: this.removePercentageSign(x2),
+            y2: this.removePercentageSign(y2)
+        }
+    }
+
+    removePercentageSign(value) {
+        return value.toString().replace('%','')
     }
 }
 
