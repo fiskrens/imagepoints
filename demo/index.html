@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ImagePoints</title>
     <link rel="StyleSheet" type="text/css" href="../src/imagepoints.css" />
     <link rel="StyleSheet" type="text/css" href="style.css" />
@@ -11,16 +11,43 @@
     <script src="../src/pointgenerator.js" defer></script>
     <script src="../src/imagepoints.js" defer></script>
     <script src="demo.js" defer></script>
-</head>
-<body>
-        <h1>ImagePoints</h1>
+  </head>
+  <body>
+    <h1>ImagePoints</h1>
 
-        <div class="tools"><a class="imgp-tool-btn js-enable-add">Add</a></div>
-        <div class="image-wrapper">
-            <img src="circle.jpg">
+    <main style="min-height: calc(100vh - 90px); margin-top: 90px">
+      <div class="tools">
+        <a class="imgp-tool-btn js-enable-add">Add</a>
+      </div>
+      <div style="width: clamp(200px, 50%, 700px); margin: 0 auto">
+        <div
+          style="
+            background: #efefef;
+            padding: 20px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+          "
+        >
+          <div style="position: relative; width: 100%">
+            <div class="image-wrapper">
+              <img src="circle.jpg" />
+            </div>
+            <ol class="imgp-point-list"></ol>
+          </div>
         </div>
-        <ol class="imgp-point-list"></ol>
-
-        <a class="js-get-dataset">GET DATASET</a>
-</body>
+        <a
+          class="js-get-dataset"
+          style="
+            padding: 10px 20px;
+            background: #252525;
+            color: #ffffff;
+            border-radius: 2px;
+            display: inline-block;
+            margin: 0 auto;
+          "
+          >GET DATASET</a
+        >
+      </div>
+    </main>
+  </body>
 </html>

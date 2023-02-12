@@ -6,13 +6,27 @@ h1 { text-align: center; }
 
 .tools { text-align: center; }
 
+.imgp-tool-btn { 
+    border-top: 2px solid transparent;
+    background: #cecece;
+    color: black;
+    padding: 5px 10px; 
+    border-radius: 3px;
+    cursor: pointer;
+}
+.imgp-tool-btn.active {
+    background: #21b520; 
+    border-top: 2px solid #1a8c19;
+    color: white;
+}
+.imgp-tool-btn:hover { filter: brightness(1.1); }
+.image-wrapper { margin-bottom: 5px;}
 
-.image-wrapper {
-    /*width: clamp(300px, 100%, 600px);*/
+/* .image-wrapper {
+
     width: 80vh;
     height: 60vh;
     margin: 0 auto;
-    /*outline: 1px solid #cecece;*/
     margin-top: 30px;
     aspect-ratio: 4/3;
     box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
@@ -30,7 +44,7 @@ h1 { text-align: center; }
 
 .imgp-point-wrapper.focused .imgp-point { background: lightblue;}
 
-
+ */
 
 
 

@@ -7,7 +7,7 @@ class ImagePoints {
         pointoffset: {x: 0, y: 0, x2: 0, y2: -50},
         generateoffset: {
             active: true,
-            type: 'hourglass',
+            type: 'radial',
             radialoffset: 50,
             factor: 0.5
         },
@@ -76,8 +76,8 @@ class ImagePoints {
     }
 
     imageClicked(event) {
-        const clickX =   event.pageX //- this.image.offsetLeft
-        const clickY =   event.pageY //- this.image.offsetTop
+        const clickX =   event.offsetX //- this.image.offsetLeft
+        const clickY =   event.offsetY //- this.image.offsetTop
 
         switch(this.currentTool) {
             default:

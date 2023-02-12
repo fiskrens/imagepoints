@@ -2,22 +2,6 @@
 
 .imgn-image { user-select: none; }
 
-.imgp-tool-btn { 
-    border-top: 2px solid transparent;
-    background: #cecece;
-    color: black;
-    padding: 5px 10px; 
-    border-radius: 3px;
-    cursor: pointer;
-}
-.imgp-tool-btn.active {
-    background: #21b520; 
-    border-top: 2px solid #1a8c19;
-    color: white;
-}
-.imgp-tool-btn:hover { filter: brightness(1.1); }
-
-
 .imgn-text {
     position: absolute;
     font-size: 10pt;
@@ -67,6 +51,7 @@
     z-index: 2;
     user-select: none;
 }
+.image-wrapper { font-size: 0;}
 .image-wrapper:not(.imgp-static) .imgp-point { cursor: move; }
 
 .imgp-point.focused {
@@ -203,17 +188,13 @@
 
 
 
-
-
-
 /* Point list */
 .imgp-point-list { 
     position: relative;
     padding: 10px; 
-    width: calc(40% - 20px); 
+    width: 100%; 
     margin: 0 auto;
     background: white;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 }
 .imgp-point-list>li { 
     margin: 0; 
@@ -259,11 +240,6 @@
 }
 .imgp-point-list>li.imgp-edit textarea { display: block; }
 .imgp-point-list>li.imgp-edit .imgp-point-list-text { display: none; }
-
-
-
-
-
 
 
 
