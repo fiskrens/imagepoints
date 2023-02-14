@@ -43,4 +43,10 @@ class Vector2 {
     angleDeg() {
         return Math.atan2(this.y, this.x) * 180/Math.PI
     }
+
+    constrain(vector) {
+        this.x = Math.min(Math.max(0, this.x), vector.x)
+        this.y = Math.min(Math.max(0, this.y), vector.y)
+        return new Vector2(this.x, this.y)
+    }
 }
