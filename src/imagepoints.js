@@ -93,8 +93,27 @@ class ImagePoints {
                     this.setCurrentTool('')
                 }
                 break
+            case 'remove':
+                if(['imgp-point','imgp-value','imgp-point-tag','imgp-line'].some((val) => event.target.classList.contains(val))) {
+                    const parent = this.findClosest(event.target, 'imgp-point-wrapper')
+                    const point = parent.querySelector('.imgp-point')
+                    const pointIndex = point.getAttribute('data-point')
+                    this.removePoint(pointIndex)
+                }
+  
+                break
         }
     }
+
+    findClosest(el, className) {
+        let parent = el.parentNode;
+        while (parent) {
+            if (parent.classList.contains(className)) {
+                return parent
+            }
+            parent = parent.parentNode
+        }
+    } 
 
     focusPointElement(elem) {
         this.image.querySelectorAll('.imgp-point-wrapper').forEach(item => {
@@ -176,6 +195,31 @@ class ImagePoints {
 
             this.options.pointlist.appendChild(elPointItem)
         }
+    }
+
+    removePoint(pointIndex) {
+        pointIndex = parseInt(pointIndex)
+        this.image.querySelector('.imgp-point[data-point="'+pointIndex+'"]').parentNode.remove()
+        this.points.splice(pointIndex, 1)
+        this.options.pointlist.querySelector('li[data-index="'+(parseInt(pointIndex)+1)+'"]').remove()
+        this.shiftIndexes(pointIndex)
+    }
+
+    shiftIndexes(pointIndex) {
+        console.log('run shift')
+        console.log(this.points)
+        //this.image.querySelectorAll('.imgp-point')
+        
+        this.points.forEach((point) => {
+            const element = this.image.querySelector('.imgp-point[data-point="'+point.index+'"]')
+            if(point.index > pointIndex) {
+                element.querySelector('.imgp-value').innerHTML = point.index // Index is 1 less than current value
+                element.setAttribute('data-point', point.index-1)
+                point.index = point.index-1
+            }
+        })
+
+
     }
 
     getDataset() {

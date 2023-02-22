@@ -7,7 +7,7 @@
                 const imagep = item.ImagePoints({
                     generateoffset: {
                         active: true,
-                        // type: 'hourglass',
+                        //type: 'hourglass',
                         radialoffset: 100,
                         // factor: 0.7
                     },
@@ -24,6 +24,11 @@
                                 document.querySelector('.js-enable-add').classList.add('active')
                             } else {
                                 document.querySelector('.js-enable-add').classList.remove('active')
+                            }
+                            if(type==='remove') {
+                                document.querySelector('.js-enable-remove').classList.add('active')
+                            } else {
+                                document.querySelector('.js-enable-remove').classList.remove('active')
                             }
                         },
                         textchange: (point, from, to)  => {
@@ -42,6 +47,10 @@
                 
                 document.querySelector('.js-enable-add').addEventListener('click', (e) => {
                     imagep.setCurrentTool('add')
+                })
+
+                document.querySelector('.js-enable-remove').addEventListener('click', (e) => {
+                    imagep.setCurrentTool('remove')
                 })
 
                 document.querySelector('.js-get-dataset').addEventListener('click', (e) => {
