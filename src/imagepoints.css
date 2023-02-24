@@ -54,14 +54,6 @@
 .image-wrapper { font-size: 0;}
 .image-wrapper:not(.imgp-static) .imgp-point { cursor: move; }
 
-.imgp-point.focused {
-    outline: 2px solid #21b520;
-}
-.imgp-point.focused:after {
-    outline: 2px solid #21b520;
-}
-
-
 .imgp-point-tag {
     position: absolute !important;
     width: 20px;
@@ -76,8 +68,10 @@
     transform: translateX(-50%) translateY(-50%);
 }
 
+
 .image-wrapper:not(.imgp-static) .imgp-point-tag:hover {
     background: #21b520;
+    cursor: move;
 }
 
 .imgp-point-tag:after {
