@@ -206,15 +206,14 @@ class ImagePoints {
     }
 
     shiftIndexes(pointIndex) {
-        console.log('run shift')
-        console.log(this.points)
-        //this.image.querySelectorAll('.imgp-point')
-        
         this.points.forEach((point) => {
             const element = this.image.querySelector('.imgp-point[data-point="'+point.index+'"]')
+            const listElement = this.options.pointlist.querySelector('li[data-index="'+(point.index+1)+'"]')
+            
             if(point.index > pointIndex) {
                 element.querySelector('.imgp-value').innerHTML = point.index // Index is 1 less than current value
                 element.setAttribute('data-point', point.index-1)
+                listElement.setAttribute('data-index', point.index)
                 point.index = point.index-1
             }
         })
